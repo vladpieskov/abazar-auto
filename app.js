@@ -4,153 +4,9 @@
 
 const STORAGE_KEY = 'abazar_catalog_data';
 
-const DEFAULT_PRODUCTS = [
-  {
-    id: 'abz-drl-01',
-    sku: 'ABZ-LED-01',
-    name: 'Bandes LED DRL Feux Diurnes Dynamiques Flexibles',
-    category: 'lighting',
-    priceRetail: 120,
-    priceWholesale: 65,
-    minQty: 10,
-    rating: 5,
-    image: 'assets/products/led-drl-daytime-running.jpg'
-  },
-  {
-    id: 'abz-curtain-02',
-    sku: 'ABZ-CURT-02',
-    name: 'Rideaux Pare-Soleil Latéraux Anti-UV (Pack 2 PCS)',
-    category: 'interior',
-    priceRetail: 90,
-    priceWholesale: 45,
-    minQty: 10,
-    rating: 5,
-    image: 'assets/products/side-curtain-uv.jpg'
-  },
-  {
-    id: 'abz-plate-03',
-    sku: 'ABZ-PLT-03',
-    name: 'Cadre Support Plaque d\'Immatriculation Noir Renforcé',
-    category: 'styling',
-    priceRetail: 40,
-    priceWholesale: 18,
-    minQty: 25,
-    rating: 4,
-    image: 'assets/products/license-plate-frame.jpg'
-  },
-  {
-    id: 'abz-wiper-04',
-    sku: 'ABZ-WIP-04',
-    name: 'Déflecteurs Spoilers Essuie-Glaces R-Sports Carbone',
-    category: 'styling',
-    priceRetail: 70,
-    priceWholesale: 32,
-    minQty: 12,
-    rating: 5,
-    image: 'assets/products/carbon-wiper-spoilers.jpg'
-  },
-  {
-    id: 'abz-chrome-vents-05',
-    sku: 'ABZ-VNT-05',
-    name: 'Évents Prises d\'Air Chrome V-623 Ailes & Carrosserie',
-    category: 'styling',
-    priceRetail: 85,
-    priceWholesale: 38,
-    minQty: 15,
-    rating: 4,
-    image: 'assets/products/chrome-air-flow-vents.jpg'
-  },
-  {
-    id: 'abz-black-intake-06',
-    sku: 'ABZ-INT-06',
-    name: 'Prises d\'Air Aérodynamiques Noires HD-706 / HD-707',
-    category: 'styling',
-    priceRetail: 75,
-    priceWholesale: 35,
-    minQty: 15,
-    rating: 5,
-    image: 'assets/products/black-decorative-air-intakes.jpg'
-  },
-  {
-    id: 'abz-wheel-cover-07',
-    sku: 'ABZ-STW-07',
-    name: 'Couvre-Volant Carbone Segmenté Sport Anti-Dérapant',
-    category: 'interior',
-    priceRetail: 110,
-    priceWholesale: 55,
-    minQty: 10,
-    rating: 5,
-    image: 'assets/products/carbon-steering-wheel-cover.jpg'
-  },
-  {
-    id: 'abz-varta-cr2025-08',
-    sku: 'ABZ-VRT-2025',
-    name: 'Pile Bouton Lithium VARTA CR2025 (Clés Télécommandes)',
-    category: 'tools',
-    priceRetail: 25,
-    priceWholesale: 9.5,
-    minQty: 50,
-    rating: 5,
-    image: 'assets/products/varta-cr2025-battery.jpg'
-  },
-  {
-    id: 'abz-varta-cr2032-09',
-    sku: 'ABZ-VRT-2032',
-    name: 'Pile Bouton Lithium VARTA CR2032 (+70% Énergie)',
-    category: 'tools',
-    priceRetail: 25,
-    priceWholesale: 9.5,
-    minQty: 50,
-    rating: 5,
-    image: 'assets/products/varta-cr2032-battery.jpg'
-  },
-  {
-    id: 'abz-letters-display-10',
-    sku: 'ABZ-LET-3D',
-    name: 'Présentoir Intégral Lettres & Chiffres 3D Chrome Métal',
-    category: 'bulk',
-    priceRetail: 450,
-    priceWholesale: 280,
-    minQty: 2,
-    rating: 5,
-    image: 'assets/products/chrome-3d-letters-display.jpg'
-  },
-  {
-    id: 'abz-spark-wrench-11',
-    sku: 'ABZ-SPK-11',
-    name: 'Clé à Bougie Articulée Universelle avec Poignée T',
-    category: 'tools',
-    priceRetail: 65,
-    priceWholesale: 28,
-    minQty: 12,
-    rating: 4,
-    image: 'assets/products/spark-plug-t-wrench.jpg'
-  },
-  {
-    id: 'abz-wheel-wrench-12',
-    sku: 'ABZ-ORC-12',
-    name: 'Clé Démonte-Roue Télescopique Renforcée ORCON',
-    category: 'tools',
-    priceRetail: 130,
-    priceWholesale: 68,
-    minQty: 10,
-    rating: 5,
-    image: 'assets/products/extendable-wheel-wrench.jpg'
-  },
-  {
-    id: 'abz-mirrors-display-13',
-    sku: 'ABZ-MIR-54',
-    name: 'Présentoir 48 Rétroviseurs Angle Mort Ronds 5.4cm',
-    category: 'bulk',
-    priceRetail: 380,
-    priceWholesale: 210,
-    minQty: 2,
-    rating: 5,
-    image: 'assets/products/blind-spot-mirrors-display.jpg'
-  }
-];
+const DEFAULT_PRODUCTS = [];
 
-let PRODUCTS = [...DEFAULT_PRODUCTS];
+let PRODUCTS = [];
 let currentLang = 'fr';
 let currentPriceMode = 'wholesale';
 let currentCategory = 'all';
@@ -227,7 +83,7 @@ async function syncFromSupabase() {
 
   try {
     const { data, error } = await sb.from('products').select('*').order('created_at', { ascending: false });
-    if (!error && Array.isArray(data) && data.length > 0) {
+    if (!error && Array.isArray(data)) {
       PRODUCTS = data.map(row => ({
         id: row.id,
         sku: row.sku,
@@ -237,24 +93,10 @@ async function syncFromSupabase() {
         priceWholesale: Number(row.price_wholesale || row.priceWholesale || 0),
         minQty: Number(row.min_qty || row.minQty || 10),
         rating: Number(row.rating || 5),
-        image: row.image || 'assets/products/led-drl-daytime-running.jpg'
+        image: row.image || 'assets/hero_car.jpg'
       }));
       localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS));
       renderProducts();
-    } else if (!error && data.length === 0) {
-      // Seed default products to Supabase
-      const rows = DEFAULT_PRODUCTS.map(p => ({
-        id: p.id,
-        sku: p.sku,
-        name: p.name,
-        category: p.category,
-        price_retail: p.priceRetail,
-        price_wholesale: p.priceWholesale,
-        min_qty: p.minQty,
-        rating: p.rating,
-        image: p.image
-      }));
-      await sb.from('products').upsert(rows);
     }
   } catch (err) {
     console.warn('Supabase sync note:', err);
@@ -318,9 +160,7 @@ function renderProducts() {
   const container = document.getElementById('productsContainer');
   if (!container) return;
 
-  const currentList = Array.isArray(PRODUCTS) && PRODUCTS.length > 0 ? PRODUCTS : DEFAULT_PRODUCTS;
-
-  const filtered = currentList.filter(p => {
+  const filtered = PRODUCTS.filter(p => {
     const matchCat = currentCategory === 'all' || p.category === currentCategory;
     const matchSearch = !searchQuery || 
       (p.name && p.name.toLowerCase().includes(searchQuery)) || 
@@ -330,9 +170,9 @@ function renderProducts() {
 
   if (filtered.length === 0) {
     container.innerHTML = `
-      <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3.5rem 1.5rem; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-        <p style="font-size: 1.1rem; font-weight: 700; color: #ffffff; margin-bottom: 0.35rem;">Aucun article ne correspond à votre recherche.</p>
-        <p style="font-size: 0.88rem;">Essayez avec un autre mot clé ou réinitialisez les filtres.</p>
+      <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 4rem 1.5rem; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+        <p style="font-size: 1.15rem; font-weight: 700; color: #ffffff; margin-bottom: 0.4rem;">Aucun article dans le catalogue pour le moment.</p>
+        <p style="font-size: 0.88rem; max-width: 420px; margin-inline: auto;">Ajoutez vos produits depuis le panneau d'administration pour les afficher ici.</p>
       </div>
     `;
     return;
