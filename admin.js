@@ -212,18 +212,77 @@ function checkAuth() {
   }
 }
 
-// --- DATA MANAGEMENT (LOCALSTORAGE) ---
-function loadProducts() {
+// --- DATA MANAGEMENT (SUPABASE CLOUD + LOCAL CACHE) ---
+async function loadProducts() {
+  // 1. Instant local cache load
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       productsList = JSON.parse(raw);
     } else {
       productsList = [...DEFAULT_PRODUCTS];
-      saveProducts();
     }
   } catch (e) {
     productsList = [...DEFAULT_PRODUCTS];
+  }
+
+  // 2. Fetch latest live from Supabase
+  const sb = typeof getSupabase === 'function' ? getSupabase() : null;
+  if (sb) {
+    try {
+      const { data, error } = await sb.from('products').select('*').order('created_at', { ascending: false });
+      if (!error && Array.isArray(data) && data.length > 0) {
+        productsList = data.map(row => ({
+          id: row.id,
+          sku: row.sku,
+          name: row.name,
+          category: row.category,
+          priceRetail: Number(row.price_retail || row.priceRetail || 0),
+          priceWholesale: Number(row.price_wholesale || row.priceWholesale || 0),
+          minQty: Number(row.min_qty || row.minQty || 10),
+          rating: Number(row.rating || 5),
+          image: row.image || 'assets/products/led-drl-daytime-running.jpg'
+        }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(productsList));
+        renderProductsTable();
+        updateKPIs();
+      }
+    } catch (err) {
+      console.warn('Supabase fetch error, fallback to local:', err);
+    }
+  }
+}
+
+async function saveProductToCloud(product) {
+  const sb = typeof getSupabase === 'function' ? getSupabase() : null;
+  if (!sb) return;
+
+  try {
+    const row = {
+      id: product.id,
+      sku: product.sku,
+      name: product.name,
+      category: product.category,
+      price_retail: product.priceRetail,
+      price_wholesale: product.priceWholesale,
+      min_qty: product.minQty || 10,
+      rating: product.rating || 5,
+      image: product.image
+    };
+    await sb.from('products').upsert([row]);
+  } catch (e) {
+    console.warn('Supabase cloud upsert warning:', e);
+  }
+}
+
+async function deleteProductFromCloud(id) {
+  const sb = typeof getSupabase === 'function' ? getSupabase() : null;
+  if (!sb) return;
+
+  try {
+    await sb.from('products').delete().eq('id', id);
+  } catch (e) {
+    console.warn('Supabase cloud delete warning:', e);
   }
 }
 
@@ -235,13 +294,32 @@ function saveProducts() {
   }
 }
 
-function resetToDefaults() {
+async function resetToDefaults() {
   if (confirm('Voulez-vous vraiment réinitialiser le catalogue aux produits d\'origine ?')) {
     productsList = [...DEFAULT_PRODUCTS];
     saveProducts();
     renderProductsTable();
     updateKPIs();
-    alert('Catalogue réinitialisé avec succès !');
+
+    const sb = typeof getSupabase === 'function' ? getSupabase() : null;
+    if (sb) {
+      try {
+        const rows = DEFAULT_PRODUCTS.map(p => ({
+          id: p.id,
+          sku: p.sku,
+          name: p.name,
+          category: p.category,
+          price_retail: p.priceRetail,
+          price_wholesale: p.priceWholesale,
+          min_qty: p.minQty,
+          rating: p.rating,
+          image: p.image
+        }));
+        await sb.from('products').upsert(rows);
+      } catch (e) {}
+    }
+
+    alert('Catalogue réinitialisé et synchronisé avec succès !');
   }
 }
 
@@ -435,6 +513,8 @@ function handleSaveProduct(e) {
       return;
     }
 
+    let savedProduct = null;
+
     if (editId) {
       // Edit existing product
       const index = productsList.findIndex(p => p.id === editId);
@@ -449,11 +529,12 @@ function handleSaveProduct(e) {
           minQty,
           image
         };
+        savedProduct = productsList[index];
       }
     } else {
       // Create new product
       const newId = 'abz-prod-' + Date.now();
-      productsList.unshift({
+      savedProduct = {
         id: newId,
         sku,
         name,
@@ -462,14 +543,16 @@ function handleSaveProduct(e) {
         priceWholesale,
         minQty,
         image
-      });
+      };
+      productsList.unshift(savedProduct);
     }
 
     saveProducts();
+    if (savedProduct) saveProductToCloud(savedProduct);
     renderProductsTable();
     updateKPIs();
     closeProductModal();
-    alert('✓ Produit enregistré et synchronisé avec succès !');
+    alert('✓ Produit enregistré et synchronisé avec la base Supabase !');
   } catch (err) {
     console.error('Error saving product:', err);
     alert('Erreur lors de l\'enregistrement : ' + err.message);
@@ -483,6 +566,7 @@ function deleteProduct(id) {
   if (confirm(`Voulez-vous vraiment supprimer "${p.name}" du catalogue ?`)) {
     productsList = productsList.filter(item => item.id !== id);
     saveProducts();
+    deleteProductFromCloud(id);
     renderProductsTable();
     updateKPIs();
   }

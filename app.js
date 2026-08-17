@@ -147,22 +147,66 @@ const DEFAULT_PRODUCTS = [
     minQty: 2,
     rating: 5,
     image: 'assets/products/blind-spot-mirrors-display.jpg'
-  }
-];
-
 let PRODUCTS = [];
 
-function loadCatalogData() {
+async function loadCatalogData() {
+  // 1. Initial fast local load
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       PRODUCTS = JSON.parse(raw);
     } else {
       PRODUCTS = [...DEFAULT_PRODUCTS];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS));
     }
   } catch (e) {
     PRODUCTS = [...DEFAULT_PRODUCTS];
+  }
+
+  // 2. Fetch from Supabase Cloud Database
+  const sb = typeof getSupabase === 'function' ? getSupabase() : null;
+  if (sb) {
+    try {
+      const { data, error } = await sb.from('products').select('*').order('created_at', { ascending: false });
+      if (!error && Array.isArray(data) && data.length > 0) {
+        PRODUCTS = data.map(row => ({
+          id: row.id,
+          sku: row.sku,
+          name: row.name,
+          category: row.category,
+          priceRetail: Number(row.price_retail || row.priceRetail || 0),
+          priceWholesale: Number(row.price_wholesale || row.priceWholesale || 0),
+          minQty: Number(row.min_qty || row.minQty || 10),
+          rating: Number(row.rating || 5),
+          image: row.image || 'assets/products/led-drl-daytime-running.jpg'
+        }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS));
+        renderProducts();
+      } else if (!error && data.length === 0) {
+        // Auto-seed Supabase with default products on first run
+        seedSupabaseDefaults(sb);
+      }
+    } catch (err) {
+      console.warn('Supabase fetch error, fallback to local cache:', err);
+    }
+  }
+}
+
+async function seedSupabaseDefaults(sb) {
+  try {
+    const rows = DEFAULT_PRODUCTS.map(p => ({
+      id: p.id,
+      sku: p.sku,
+      name: p.name,
+      category: p.category,
+      price_retail: p.priceRetail,
+      price_wholesale: p.priceWholesale,
+      min_qty: p.minQty,
+      rating: p.rating,
+      image: p.image
+    }));
+    await sb.from('products').upsert(rows);
+  } catch (e) {
+    console.warn('Supabase auto-seed warning:', e);
   }
 }
 
