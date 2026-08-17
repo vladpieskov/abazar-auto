@@ -2,7 +2,8 @@
    ABAZAR ADMIN DASHBOARD - LOGIC & CRUD ENGINE
    ========================================================================== */
 
-const STORAGE_KEY = 'abazar_catalog_data';
+const STORAGE_KEY = 'abazar_live_catalog_v2026';
+try { localStorage.removeItem('abazar_catalog_data'); } catch(e) {}
 const AUTH_KEY = 'abazar_admin_session';
 
 const DEFAULT_PRODUCTS = [];
@@ -137,9 +138,9 @@ function saveProducts() {
   }
 }
 
-async function resetToDefaults() {
-  if (confirm('Voulez-vous vraiment réinitialiser le catalogue aux produits d\'origine ?')) {
-    productsList = [...DEFAULT_PRODUCTS];
+async function clearAllProducts() {
+  if (confirm('Voulez-vous vraiment supprimer TOUS les articles et vider le catalogue ?')) {
+    productsList = [];
     saveProducts();
     renderProductsTable();
     updateKPIs();
@@ -147,22 +148,13 @@ async function resetToDefaults() {
     const sb = typeof getSupabase === 'function' ? getSupabase() : null;
     if (sb) {
       try {
-        const rows = DEFAULT_PRODUCTS.map(p => ({
-          id: p.id,
-          sku: p.sku,
-          name: p.name,
-          category: p.category,
-          price_retail: p.priceRetail,
-          price_wholesale: p.priceWholesale,
-          min_qty: p.minQty,
-          rating: p.rating,
-          image: p.image
-        }));
-        await sb.from('products').upsert(rows);
-      } catch (e) {}
+        await sb.from('products').delete().neq('id', '___');
+      } catch (e) {
+        console.warn('Supabase delete all error:', e);
+      }
     }
 
-    alert('Catalogue réinitialisé et synchronisé avec succès !');
+    alert('✓ Le catalogue et la base de données ont été vidés avec succès !');
   }
 }
 

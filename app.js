@@ -2,7 +2,8 @@
    ABAZAR AUTO ACCESSORIES - APPLICATION ENGINE (PROFESSIONAL NO-EMOJIS)
    ========================================================================== */
 
-const STORAGE_KEY = 'abazar_catalog_data';
+const STORAGE_KEY = 'abazar_live_catalog_v2026';
+try { localStorage.removeItem('abazar_catalog_data'); } catch(e) {}
 
 const DEFAULT_PRODUCTS = [];
 
