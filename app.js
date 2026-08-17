@@ -518,7 +518,7 @@ function checkoutWhatsApp() {
   msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
   msg += `💰 *TOTAL ESTIMÉ :* *${totalAmount.toFixed(0)} DH*\n`;
   msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
-  msg += `_Commande générée via accabazar.com_`;
+  msg += `_Commande générée via abazar.ma_`;
 
   const waUrl = `https://api.whatsapp.com/send/?phone=212666349813&text=${encodeURIComponent(msg)}`;
   window.open(waUrl, '_blank');
