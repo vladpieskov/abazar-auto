@@ -487,3 +487,41 @@ function deleteProduct(id) {
     updateKPIs();
   }
 }
+
+// --- EXPORT & IMPORT CATALOG DATA ---
+function exportCatalogJSON() {
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(productsList, null, 2));
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute("href", dataStr);
+  downloadAnchor.setAttribute("download", `abazar_catalog_${new Date().toISOString().slice(0,10)}.json`);
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
+}
+
+function importCatalogJSON(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (Array.isArray(imported) && imported.length > 0) {
+        if (confirm(`Voulez-vous importer ${imported.length} produits et remplacer le catalogue actuel ?`)) {
+          productsList = imported;
+          saveProducts();
+          renderProductsTable();
+          updateKPIs();
+          alert(`✓ ${imported.length} produits importés avec succès !`);
+        }
+      } else {
+        alert('Le fichier JSON ne contient pas une liste valide de produits.');
+      }
+    } catch(err) {
+      alert('Erreur lors de la lecture du fichier JSON : ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}

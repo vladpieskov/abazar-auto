@@ -108,8 +108,15 @@
             </select>
           </div>
 
-          <div style="display: flex; gap: 0.75rem;">
-            <button class="btn-cancel" onclick="resetToDefaults()" title="Réinitialiser le catalogue">
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="btn-cancel" onclick="exportCatalogJSON()" title="Télécharger le catalogue au format JSON">
+              📥 Exporter JSON
+            </button>
+            <label class="btn-cancel" style="cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem;" title="Importer un fichier JSON">
+              📤 Importer JSON
+              <input type="file" id="importJsonInput" accept=".json" style="display: none;" onchange="importCatalogJSON(event)">
+            </label>
+            <button class="btn-cancel" onclick="resetToDefaults()" title="Réinitialiser aux produits par défaut">
               🔄 Réinitialiser
             </button>
             <button class="btn-add-product" onclick="openAddProductModal()">
