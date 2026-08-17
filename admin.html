@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ABAZAR Admin | Gestion du Catalogue & Produits</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+  <!-- ==========================================================================
+       LOGIN VIEW
+       ========================================================================== -->
+  <div class="login-wrap" id="loginView">
+    <div class="login-card">
+      <div class="login-logo">
+        <span class="logo-tag">ABAZAR</span>
+        <h2 class="login-title">Espace Administration</h2>
+        <p class="login-sub">Connectez-vous pour gérer les produits et tarifs grossiste</p>
+      </div>
+
+      <div class="login-alert" id="loginAlert">
+        Identifiant ou mot de passe incorrect.
+      </div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="usernameInput">Identifiant</label>
+          <input type="text" class="form-control" id="usernameInput" required placeholder="admin" autocomplete="username">
+        </div>
+
+        <div class="form-group">
+          <label for="passwordInput">Mot de passe</label>
+          <input type="password" class="form-control" id="passwordInput" required placeholder="••••••••" autocomplete="current-password">
+        </div>
+
+        <button type="submit" class="btn-login">
+          Se Connecter au Dashboard
+        </button>
+      </form>
+
+      <div style="text-align: center; margin-top: 1.5rem; font-size: 0.8rem; color: var(--text-dim);">
+        Identifiant par défaut : <strong>admin</strong> | Mot de passe : <strong>abazar2026</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       ADMIN DASHBOARD VIEW (AUTHENTICATED)
+       ========================================================================== -->
+  <div class="admin-app" id="adminApp">
+    <!-- Header -->
+    <header class="admin-header">
+      <div class="admin-header-wrap">
+        <div class="admin-brand">
+          <span class="logo-tag" style="font-size: 1rem; margin-bottom: 0;">ABAZAR</span>
+          <h1>Gestionnaire de Produits & Catalogue</h1>
+        </div>
+
+        <div class="admin-user-actions">
+          <a href="index.html" class="btn-view-shop" target="_blank">
+            🛍️ Voir la Boutique
+          </a>
+          <button class="btn-logout" onclick="handleLogout()">
+            Déconnexion
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Dashboard -->
+    <main class="admin-main">
+      <!-- KPI Stats -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon">📦</div>
+          <div class="kpi-data">
+            <h3>Total Produits</h3>
+            <span id="kpiTotalProducts">0</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon" style="color: var(--accent-cyan); background: rgba(6, 182, 212, 0.15);">🏷️</div>
+          <div class="kpi-data">
+            <h3>Catégories Actives</h3>
+            <span id="kpiCategories">0</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon" style="color: var(--accent-amber); background: rgba(245, 158, 11, 0.15);">🏢</div>
+          <div class="kpi-data">
+            <h3>Lots & Cartons Gros</h3>
+            <span id="kpiWholesaleDeals">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Products Table Card -->
+      <div class="table-card">
+        <div class="table-toolbar">
+          <div class="toolbar-search">
+            <input type="text" class="form-control" id="adminSearchInput" placeholder="Rechercher par nom ou SKU..." oninput="handleAdminSearch(event)">
+            <select class="form-control" id="adminCategoryFilter" style="max-width: 180px;" onchange="handleAdminCategoryFilter(event)">
+              <option value="all">Toutes Catégories</option>
+              <option value="lighting">Éclairage LED</option>
+              <option value="styling">Tuning & Styling</option>
+              <option value="interior">Intérieur & Confort</option>
+              <option value="tools">Outillage & Piles</option>
+              <option value="bulk">Présentoirs B2B</option>
+            </select>
+          </div>
+
+          <div style="display: flex; gap: 0.75rem;">
+            <button class="btn-cancel" onclick="resetToDefaults()" title="Réinitialiser le catalogue">
+              🔄 Réinitialiser
+            </button>
+            <button class="btn-add-product" onclick="openAddProductModal()">
+              ➕ Ajouter un Produit
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>Réf / SKU</th>
+                <th>Nom du Produit</th>
+                <th>Catégorie</th>
+                <th>Prix Public</th>
+                <th>Prix Grossiste</th>
+                <th style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="productsTableBody">
+              <!-- Loaded dynamically via admin.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ==========================================================================
+       PRODUCT MODAL (ADD / EDIT)
+       ========================================================================== -->
+  <div class="modal-backdrop" id="productModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2 id="modalTitle">Ajouter un Nouveau Produit</h2>
+        <button class="btn-close-cart" onclick="closeProductModal()" style="color: var(--text-muted); font-size: 1.2rem; cursor: pointer; background: transparent; border: none;">✕</button>
+      </div>
+
+      <form id="productForm" onsubmit="handleSaveProduct(event)">
+        <div class="modal-body">
+          <input type="hidden" id="editProductId">
+
+          <div class="form-group">
+            <label>Nom du Produit *</label>
+            <input type="text" class="form-control" id="productName" required placeholder="Ex: Ampoules LED H7 Canbus Ultra">
+          </div>
+
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label>Référence / SKU *</label>
+              <input type="text" class="form-control" id="productSku" required placeholder="Ex: ABZ-LED-H7">
+            </div>
+
+            <div class="form-group">
+              <label>Catégorie *</label>
+              <select class="form-control" id="productCategory" required>
+                <option value="lighting">💡 Éclairage LED</option>
+                <option value="styling">🏎️ Tuning & Styling</option>
+                <option value="interior">🛡️ Intérieur & Confort</option>
+                <option value="tools">🔧 Outillage & Piles</option>
+                <option value="bulk">📦 Présentoirs & Lots B2B</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Image Upload / Link -->
+          <div class="form-group">
+            <label>Photo du Produit (Téléverser depuis l'ordinateur ou Lien)</label>
+            <input type="file" class="form-control" id="productImageFile" accept="image/*" onchange="handleImageUpload(event)">
+            <input type="text" class="form-control" id="productImageUrl" placeholder="Ou coller le chemin d'image (ex: assets/products/...)" style="margin-top: 0.5rem;" oninput="updateImagePreviewFromUrl()">
+            
+            <div class="image-preview-box" id="imagePreviewBox">
+              <span style="color: var(--text-dim); font-size: 0.82rem;" id="imagePreviewPlaceholder">Aperçu de la photo</span>
+              <img id="imagePreview" style="display: none;" alt="Aperçu">
+            </div>
+          </div>
+
+          <!-- Pricing Grid -->
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label>Prix Public / Détail (DH) *</label>
+              <input type="number" step="0.5" class="form-control" id="priceRetail" required placeholder="Ex: 120">
+            </div>
+
+            <div class="form-group">
+              <label>Prix Grossiste (DH) *</label>
+              <input type="number" step="0.5" class="form-control" id="priceWholesale" required placeholder="Ex: 65">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Quantité Min. pour Tarif Grossiste (pcs)</label>
+            <input type="number" class="form-control" id="minQty" value="10" placeholder="10">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" onclick="closeProductModal()">Annuler</button>
+          <button type="submit" class="btn-save">Enregistrer le Produit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script src="admin.js"></script>
+</body>
+</html>

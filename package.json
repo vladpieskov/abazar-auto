@@ -1,0 +1,17 @@
+{
+  "name": "abazar-auto-accessories",
+  "version": "1.0.0",
+  "description": "ABAZAR Auto Accessories E-Commerce Store & Admin Portal",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 8080"
+  },
+  "keywords": [
+    "auto-accessories",
+    "ecommerce",
+    "morocco",
+    "abazar"
+  ],
+  "author": "ABAZAR",
+  "license": "MIT"
+}
