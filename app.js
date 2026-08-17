@@ -1,5 +1,5 @@
 /* ==========================================================================
-   ABAZAR AUTO ACCESSORIES - AUTOMOTOBOUTIC THEME APPLICATION LOGIC
+   ABAZAR AUTO ACCESSORIES - APPLICATION ENGINE (PROFESSIONAL NO-EMOJIS)
    ========================================================================== */
 
 const STORAGE_KEY = 'abazar_catalog_data';
@@ -147,69 +147,10 @@ const DEFAULT_PRODUCTS = [
     minQty: 2,
     rating: 5,
     image: 'assets/products/blind-spot-mirrors-display.jpg'
-let PRODUCTS = [];
-
-async function loadCatalogData() {
-  // 1. Initial fast local load
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      PRODUCTS = JSON.parse(raw);
-    } else {
-      PRODUCTS = [...DEFAULT_PRODUCTS];
-    }
-  } catch (e) {
-    PRODUCTS = [...DEFAULT_PRODUCTS];
   }
+];
 
-  // 2. Fetch from Supabase Cloud Database
-  const sb = typeof getSupabase === 'function' ? getSupabase() : null;
-  if (sb) {
-    try {
-      const { data, error } = await sb.from('products').select('*').order('created_at', { ascending: false });
-      if (!error && Array.isArray(data) && data.length > 0) {
-        PRODUCTS = data.map(row => ({
-          id: row.id,
-          sku: row.sku,
-          name: row.name,
-          category: row.category,
-          priceRetail: Number(row.price_retail || row.priceRetail || 0),
-          priceWholesale: Number(row.price_wholesale || row.priceWholesale || 0),
-          minQty: Number(row.min_qty || row.minQty || 10),
-          rating: Number(row.rating || 5),
-          image: row.image || 'assets/products/led-drl-daytime-running.jpg'
-        }));
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS));
-        renderProducts();
-      } else if (!error && data.length === 0) {
-        // Auto-seed Supabase with default products on first run
-        seedSupabaseDefaults(sb);
-      }
-    } catch (err) {
-      console.warn('Supabase fetch error, fallback to local cache:', err);
-    }
-  }
-}
-
-async function seedSupabaseDefaults(sb) {
-  try {
-    const rows = DEFAULT_PRODUCTS.map(p => ({
-      id: p.id,
-      sku: p.sku,
-      name: p.name,
-      category: p.category,
-      price_retail: p.priceRetail,
-      price_wholesale: p.priceWholesale,
-      min_qty: p.minQty,
-      rating: p.rating,
-      image: p.image
-    }));
-    await sb.from('products').upsert(rows);
-  } catch (e) {
-    console.warn('Supabase auto-seed warning:', e);
-  }
-}
-
+let PRODUCTS = [...DEFAULT_PRODUCTS];
 let currentLang = 'fr';
 let currentPriceMode = 'wholesale';
 let currentCategory = 'all';
@@ -224,7 +165,7 @@ const DICT = {
     cart_empty: "Votre panier est actuellement vide.",
     cart_empty_sub: "Consultez notre sélection d'accessoires pour ajouter des produits.",
     btn_checkout: "Commander via WhatsApp",
-    toast_added: "✓ Produit ajouté au panier !",
+    toast_added: "Produit ajouté au panier",
     stock_status: "En Stock",
     wholesale_label: "Tarif Grossiste",
     retail_label: "Prix Public Conseillé"
@@ -236,7 +177,7 @@ const DICT = {
     cart_empty: "سلتكم فارغة حالياً.",
     cart_empty_sub: "تصفحوا الكتالوج لإضافة المنتجات بأسعار الجملة أو التقسيط.",
     btn_checkout: "تأكيد وإرسال الطلب عبر واتساب",
-    toast_added: "✓ تمت إضافة المنتج إلى السلة بنجاح !",
+    toast_added: "تمت إضافة المنتج إلى السلة بنجاح",
     stock_status: "متوفر بالمخزن",
     wholesale_label: "سعر الجملة",
     retail_label: "سعر البيع المقترح"
@@ -248,17 +189,81 @@ const DICT = {
     cart_empty: "Your cart is currently empty.",
     cart_empty_sub: "Browse our auto accessories catalog to add items.",
     btn_checkout: "Order via WhatsApp",
-    toast_added: "✓ Item added to cart!",
+    toast_added: "Item added to cart",
     stock_status: "In Stock",
     wholesale_label: "Wholesale Rate",
     retail_label: "MSRP Retail Price"
   }
 };
 
+function loadCatalogData() {
+  // 1. Initial immediate load from local cache or defaults
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        PRODUCTS = parsed;
+      } else {
+        PRODUCTS = [...DEFAULT_PRODUCTS];
+      }
+    } else {
+      PRODUCTS = [...DEFAULT_PRODUCTS];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS));
+    }
+  } catch (e) {
+    PRODUCTS = [...DEFAULT_PRODUCTS];
+  }
+
+  renderProducts();
+
+  // 2. Background sync from Supabase Cloud Database
+  syncFromSupabase();
+}
+
+async function syncFromSupabase() {
+  const sb = typeof getSupabase === 'function' ? getSupabase() : null;
+  if (!sb) return;
+
+  try {
+    const { data, error } = await sb.from('products').select('*').order('created_at', { ascending: false });
+    if (!error && Array.isArray(data) && data.length > 0) {
+      PRODUCTS = data.map(row => ({
+        id: row.id,
+        sku: row.sku,
+        name: row.name,
+        category: row.category,
+        priceRetail: Number(row.price_retail || row.priceRetail || 0),
+        priceWholesale: Number(row.price_wholesale || row.priceWholesale || 0),
+        minQty: Number(row.min_qty || row.minQty || 10),
+        rating: Number(row.rating || 5),
+        image: row.image || 'assets/products/led-drl-daytime-running.jpg'
+      }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS));
+      renderProducts();
+    } else if (!error && data.length === 0) {
+      // Seed default products to Supabase
+      const rows = DEFAULT_PRODUCTS.map(p => ({
+        id: p.id,
+        sku: p.sku,
+        name: p.name,
+        category: p.category,
+        price_retail: p.priceRetail,
+        price_wholesale: p.priceWholesale,
+        min_qty: p.minQty,
+        rating: p.rating,
+        image: p.image
+      }));
+      await sb.from('products').upsert(rows);
+    }
+  } catch (err) {
+    console.warn('Supabase sync note:', err);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   loadCatalogData();
   loadCart();
-  renderProducts();
   updateCartBadge();
   checkStoreStatus();
 
@@ -266,7 +271,6 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('storage', (e) => {
     if (e.key === STORAGE_KEY) {
       loadCatalogData();
-      renderProducts();
     }
   });
 
@@ -307,25 +311,27 @@ function filterByVehicle() {
   if (catalogEl) catalogEl.scrollIntoView({ behavior: 'smooth' });
 }
 
-function updateVehicleModels() {
-  // Vehicle selector helper
-}
+function updateVehicleModels() {}
 
 // --- CATALOG RENDERING ---
 function renderProducts() {
   const container = document.getElementById('productsContainer');
   if (!container) return;
 
-  const filtered = PRODUCTS.filter(p => {
+  const currentList = Array.isArray(PRODUCTS) && PRODUCTS.length > 0 ? PRODUCTS : DEFAULT_PRODUCTS;
+
+  const filtered = currentList.filter(p => {
     const matchCat = currentCategory === 'all' || p.category === currentCategory;
-    const matchSearch = !searchQuery || p.name.toLowerCase().includes(searchQuery) || p.sku.toLowerCase().includes(searchQuery);
+    const matchSearch = !searchQuery || 
+      (p.name && p.name.toLowerCase().includes(searchQuery)) || 
+      (p.sku && p.sku.toLowerCase().includes(searchQuery));
     return matchCat && matchSearch;
   });
 
   if (filtered.length === 0) {
     container.innerHTML = `
-      <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3.5rem 1.5rem; background: #ffffff; border-radius: var(--radius-sm); border: 1px solid var(--border-light);">
-        <p style="font-size: 1.1rem; font-weight: 700; color: var(--text-dark); margin-bottom: 0.35rem;">Aucun article ne correspond à votre recherche.</p>
+      <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3.5rem 1.5rem; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+        <p style="font-size: 1.1rem; font-weight: 700; color: #ffffff; margin-bottom: 0.35rem;">Aucun article ne correspond à votre recherche.</p>
         <p style="font-size: 0.88rem;">Essayez avec un autre mot clé ou réinitialisez les filtres.</p>
       </div>
     `;
@@ -344,22 +350,23 @@ function renderProducts() {
     );
     const waLink = `https://api.whatsapp.com/send/?phone=212666349813&text=${orderMsg}`;
 
-    const stars = '★'.repeat(p.rating || 5) + '☆'.repeat(5 - (p.rating || 5));
+    const ratingVal = p.rating || 5;
+    const starsHtml = '★'.repeat(ratingVal) + '☆'.repeat(5 - ratingVal);
 
     return `
       <article class="product-item-card">
         <div class="product-image-container">
           <span class="badge-flag-stock">
-            ● ${DICT[currentLang].stock_status}
+            ${DICT[currentLang].stock_status}
           </span>
-          <img src="${p.image}" alt="${p.name}" loading="lazy">
+          <img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.src='assets/products/led-drl-daytime-running.jpg'">
         </div>
 
         <div class="product-card-body">
           <span class="product-sku-code">Réf : ${p.sku}</span>
           <h3 class="product-item-title">${p.name}</h3>
 
-          <div class="product-rating-stars">${stars}</div>
+          <div class="product-rating-stars">${starsHtml}</div>
 
           <div class="product-pricing-wrap">
             <div>
@@ -370,10 +377,10 @@ function renderProducts() {
 
           <div class="product-card-buttons">
             <button class="btn-card-add-cart" onclick="addToCart('${p.id}')">
-              🛒 ${DICT[currentLang].add_to_cart}
+              ${DICT[currentLang].add_to_cart}
             </button>
             <a href="${waLink}" target="_blank" class="btn-card-wa-order">
-              💬 ${DICT[currentLang].order_wa}
+              ${DICT[currentLang].order_wa}
             </a>
           </div>
         </div>
@@ -399,7 +406,7 @@ function setPriceMode(mode) {
 
 // --- CART MANAGEMENT SYSTEM ---
 function addToCart(productId) {
-  const p = PRODUCTS.find(item => item.id === productId);
+  const p = PRODUCTS.find(item => item.id === productId) || DEFAULT_PRODUCTS.find(item => item.id === productId);
   if (!p) return;
 
   const isWholesale = currentPriceMode === 'wholesale';
@@ -479,8 +486,7 @@ function renderCartDrawer() {
   if (cart.length === 0) {
     body.innerHTML = `
       <div style="text-align: center; color: var(--text-muted); padding: 3.5rem 1.5rem;">
-        <div style="font-size: 3rem; margin-bottom: 0.75rem;">🛒</div>
-        <h3 style="color: var(--text-dark); font-size: 1.15rem; font-weight: 700; margin-bottom: 0.35rem;">${DICT[currentLang].cart_empty}</h3>
+        <h3 style="color: #ffffff; font-size: 1.15rem; font-weight: 700; margin-bottom: 0.35rem;">${DICT[currentLang].cart_empty}</h3>
         <p style="font-size: 0.85rem; max-width: 260px; margin-inline: auto;">${DICT[currentLang].cart_empty_sub}</p>
         <button class="btn-hero-cta" style="margin-top: 1.5rem; font-size: 0.85rem;" onclick="closeCartDrawer()">
           Continuer mes achats
@@ -520,12 +526,12 @@ function renderCartDrawer() {
   }).join('');
 
   const customerBox = `
-    <div style="background: #ffffff; border: 1px solid var(--border-light); border-radius: var(--radius-xs); padding: 1rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.65rem;">
-      <span style="font-size: 0.78rem; font-weight: 800; color: var(--text-dark); text-transform: uppercase;">
-        📋 Vos Coordonnées de Livraison / Devis :
+    <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xs); padding: 1rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.65rem;">
+      <span style="font-size: 0.78rem; font-weight: 800; color: #ffffff; text-transform: uppercase;">
+        Coordonnées de Livraison / Devis :
       </span>
-      <input type="text" id="cartClientName" placeholder="Nom ou Nom du Garage / Magasin" style="width: 100%; padding: 0.55rem 0.75rem; border: 1px solid var(--border-light); border-radius: 4px; font-size: 0.85rem;">
-      <input type="text" id="cartClientCity" placeholder="Ville de Livraison (ex: Agadir / Casablanca / Marrakech)" style="width: 100%; padding: 0.55rem 0.75rem; border: 1px solid var(--border-light); border-radius: 4px; font-size: 0.85rem;">
+      <input type="text" id="cartClientName" placeholder="Nom ou Nom du Garage / Magasin" style="width: 100%; padding: 0.55rem 0.75rem; border: 1px solid var(--border-subtle); background: var(--bg-darkest); color: #ffffff; border-radius: 4px; font-size: 0.85rem;">
+      <input type="text" id="cartClientCity" placeholder="Ville de Livraison (ex: Agadir / Casablanca / Marrakech)" style="width: 100%; padding: 0.55rem 0.75rem; border: 1px solid var(--border-subtle); background: var(--bg-darkest); color: #ffffff; border-radius: 4px; font-size: 0.85rem;">
     </div>
   `;
 
@@ -545,10 +551,10 @@ function checkoutWhatsApp() {
   let totalAmount = 0;
   let msg = `*COMMANDE / DEMANDE DE DEVIS - ABAZAR AUTO*\n`;
   msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
-  msg += `👤 *Client / Garage :* ${nameInput}\n`;
-  msg += `📍 *Ville de Destination :* ${cityInput}\n`;
+  msg += `*Client / Garage :* ${nameInput}\n`;
+  msg += `*Ville de Destination :* ${cityInput}\n`;
   msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
-  msg += `📦 *DÉTAIL DU PANIER :*\n\n`;
+  msg += `*DÉTAIL DU PANIER :*\n\n`;
 
   cart.forEach((item, i) => {
     const lineTotal = item.unitPrice * item.packQty * item.packCount;
@@ -560,7 +566,7 @@ function checkoutWhatsApp() {
   });
 
   msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
-  msg += `💰 *TOTAL ESTIMÉ :* *${totalAmount.toFixed(0)} DH*\n`;
+  msg += `*TOTAL ESTIMÉ :* *${totalAmount.toFixed(0)} DH*\n`;
   msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
   msg += `_Commande générée via abazar.ma_`;
 
@@ -592,7 +598,7 @@ function showToast(msg) {
     bottom: 2rem;
     left: 50%;
     transform: translateX(-50%);
-    background: var(--bg-dark-nav);
+    background: var(--bg-darkest);
     color: #ffffff;
     border: 2px solid var(--primary-red);
     padding: 0.75rem 1.5rem;
@@ -600,7 +606,7 @@ function showToast(msg) {
     font-size: 0.88rem;
     font-weight: 700;
     z-index: 2000;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   `;
   toast.textContent = msg;
   document.body.appendChild(toast);

@@ -7,8 +7,8 @@
   <meta name="description" content="ABAZAR : Spécialiste de l'accessoire automobile, optiques et éclairages LED, tuning, tapis et outillage au Maroc. Grossiste et revendeur à Aït Melloul, Agadir.">
   <meta name="keywords" content="accessoires auto maroc, grossiste pièces agadir, abazar auto, tuning maroc, ampoules led canbus, outillage auto">
 
-  <!-- External & Embedded Black & Red Theme -->
-  <link rel="stylesheet" href="styles.css?v=2026.3">
+  <!-- External & Embedded Black & Red Theme (No Emojis, Clean Professional) -->
+  <link rel="stylesheet" href="styles.css?v=2026.10">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800;900&family=Tajawal:wght@400;500;700;800&family=Roboto+Mono:wght@500;700&display=swap');
 
@@ -88,13 +88,13 @@
     .search-submit-btn:hover { background: var(--primary-red-hover); }
     .header-right-actions { display: flex; align-items: center; gap: 1rem; }
     .header-contact-box { display: flex; align-items: center; gap: 0.65rem; padding-right: 1rem; border-right: 1px solid var(--border-subtle); }
-    .phone-icon-circle { width: 40px; height: 40px; border-radius: 50%; background: var(--primary-red-soft); color: var(--primary-red); border: 1px solid rgba(225, 29, 72, 0.4); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+    .phone-icon-circle { width: 40px; height: 40px; border-radius: 50%; background: var(--primary-red-soft); color: var(--primary-red); border: 1px solid rgba(225, 29, 72, 0.4); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 800; }
     .phone-text-group strong { display: block; font-family: var(--font-display); font-size: 1rem; font-weight: 800; color: #ffffff; line-height: 1.1; }
     .phone-text-group span { font-size: 0.72rem; color: var(--text-muted); }
     .btn-header-cart { display: flex; align-items: center; gap: 0.65rem; background: var(--primary-red); color: #ffffff; padding: 0.6rem 1.1rem; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.88rem; border: none; cursor: pointer; box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35); transition: var(--transition); }
     .btn-header-cart:hover { background: var(--primary-red-hover); transform: translateY(-1px); }
-    .cart-icon-wrap { position: relative; }
-    .cart-badge-count { position: absolute; top: -8px; right: -10px; background: #ffffff; color: var(--primary-red); font-size: 0.68rem; font-weight: 900; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .cart-icon-wrap { position: relative; font-weight: 800; font-size: 0.85rem; }
+    .cart-badge-count { position: absolute; top: -10px; right: -12px; background: #ffffff; color: var(--primary-red); font-size: 0.68rem; font-weight: 900; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 
     /* Horizontal Nav Bar */
     .horizontal-nav-bar { background: var(--bg-darkest); border-bottom: 1px solid var(--border-subtle); position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); }
@@ -133,7 +133,7 @@
     .reassurance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
     .reassurance-block { background: var(--bg-card); border: 1px solid var(--border-subtle); padding: 1.15rem 1rem; border-radius: var(--radius-sm); display: flex; align-items: center; gap: 0.85rem; box-shadow: var(--shadow-sm); transition: var(--transition); }
     .reassurance-block:hover { border-color: var(--primary-red); transform: translateY(-2px); }
-    .reassurance-icon { width: 44px; height: 44px; border-radius: 50%; background: var(--primary-red-soft); color: var(--primary-red); border: 1px solid rgba(225, 29, 72, 0.3); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+    .reassurance-icon { width: 40px; height: 40px; border-radius: 50%; background: var(--primary-red-soft); color: var(--primary-red); border: 1px solid rgba(225, 29, 72, 0.3); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 900; flex-shrink: 0; }
     .reassurance-text h4 { font-family: var(--font-display); font-size: 0.88rem; font-weight: 800; color: #ffffff; margin-bottom: 0.15rem; }
     .reassurance-text p { font-size: 0.76rem; color: #94a3b8; line-height: 1.35; }
 
@@ -144,8 +144,8 @@
     .cat-tiles-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
     .cat-tile-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 1.25rem 1rem; text-align: center; box-shadow: var(--shadow-sm); cursor: pointer; transition: var(--transition); }
     .cat-tile-card:hover { transform: translateY(-3px); border-color: var(--primary-red); box-shadow: 0 8px 20px rgba(225, 29, 72, 0.25); }
-    .cat-tile-icon { font-size: 2.2rem; margin-bottom: 0.5rem; }
-    .cat-tile-title { font-family: var(--font-display); font-size: 0.88rem; font-weight: 700; color: #ffffff; }
+    .cat-tile-tag { font-family: var(--font-mono); font-size: 0.7rem; color: var(--primary-red); font-weight: 700; text-transform: uppercase; margin-bottom: 0.4rem; }
+    .cat-tile-title { font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; color: #ffffff; }
 
     /* Catalog */
     .catalog-section { padding: 2.5rem 0; }
@@ -158,7 +158,7 @@
     .cat-filter-btn:hover, .cat-filter-btn.active { background: var(--primary-red); color: #ffffff; border-color: var(--primary-red); }
 
     /* Products Grid */
-    .products-ecommerce-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; }
+    .products-ecommerce-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; min-height: 200px; }
     .product-item-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); overflow: hidden; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; transition: var(--transition); position: relative; }
     .product-item-card:hover { transform: translateY(-4px); border-color: var(--primary-red); box-shadow: 0 10px 25px rgba(225, 29, 72, 0.2); }
     .product-image-container { background: #ffffff; height: 220px; display: flex; align-items: center; justify-content: center; padding: 1rem; position: relative; border-bottom: 1px solid var(--border-subtle); }
@@ -256,13 +256,13 @@
           <span id="storeStatusText">Ouvert actuellement • 09:00 - 19:30</span>
         </div>
         <span class="top-shipping-note">
-          🚚 Expédition Express 24/48h dans toutes les villes du Maroc
+          Expédition Express 24/48h dans toutes les villes du Maroc
         </span>
       </div>
 
       <div class="top-bar-right">
         <span style="color: #94a3b8; font-size: 0.74rem;">
-          📍 Dépôt & Showroom : Route Biougra, Aït Melloul, Agadir
+          Dépôt & Showroom : Route Biougra, Aït Melloul, Agadir
         </span>
         <div class="lang-switch-box">
           <button class="lang-btn active" data-lang="fr" onclick="setLanguage('fr')">FR</button>
@@ -290,7 +290,7 @@
         <div class="search-input-wrap">
           <input type="text" class="search-input-control" id="searchInput" placeholder="Rechercher une pièce, référence, accessoire (ex: LED H7, VARTA, Carbone, ORCON)...">
           <button class="search-submit-btn" onclick="triggerSearch()">
-            🔍 <span>Rechercher</span>
+            <span>Rechercher</span>
           </button>
         </div>
       </div>
@@ -298,20 +298,20 @@
       <!-- Phone Contact & Cart Button -->
       <div class="header-right-actions">
         <div class="header-contact-box">
-          <div class="phone-icon-circle">📞</div>
+          <div class="phone-icon-circle">WA</div>
           <div class="phone-text-group">
-            <span>WhatsApp & Commandes</span>
+            <span>WhatsApp Commercial</span>
             <strong>06 66 34 98 13</strong>
           </div>
         </div>
 
         <button class="btn-header-cart" onclick="openCartDrawer()">
           <div class="cart-icon-wrap">
-            🛒
+            PANIER
             <span class="cart-badge-count" id="headerCartBadge">0</span>
           </div>
           <div>
-            <span style="font-size: 0.7rem; color: #ffe4e6; display: block; text-transform: uppercase;">Mon Panier</span>
+            <span style="font-size: 0.7rem; color: #ffe4e6; display: block; text-transform: uppercase;">Total</span>
             <span style="font-size: 0.85rem; color: #ffffff;" id="headerCartTotal">0 DH</span>
           </div>
         </button>
@@ -319,17 +319,17 @@
     </div>
   </header>
 
-  <!-- 3. HORIZONTAL NAV MEGA-MENU BAR -->
+  <!-- 3. HORIZONTAL NAV MEGA-MENU BAR (NO EMOJIS) -->
   <nav class="horizontal-nav-bar" aria-label="Catégories principales">
     <div class="container">
       <ul class="nav-links-list">
-        <li><a href="#hero" class="nav-item-link active">🏠 Accueil</a></li>
-        <li><a href="#catalog" class="nav-item-link" onclick="filterCat('lighting')">💡 Éclairage LED</a></li>
-        <li><a href="#catalog" class="nav-item-link" onclick="filterCat('interior')">🛡️ Confort & Intérieur</a></li>
-        <li><a href="#catalog" class="nav-item-link" onclick="filterCat('styling')">🏎️ Tuning & Carrosserie</a></li>
-        <li><a href="#catalog" class="nav-item-link" onclick="filterCat('tools')">🔧 Outillage & Batteries</a></li>
-        <li><a href="#catalog" class="nav-item-link b2b-highlight" onclick="filterCat('bulk')">📦 Espace Grossiste B2B</a></li>
-        <li><a href="#showroom" class="nav-item-link">📍 Showroom & Dépôt</a></li>
+        <li><a href="#hero" class="nav-item-link active">Accueil</a></li>
+        <li><a href="#catalog" class="nav-item-link" onclick="filterCat('lighting')">Éclairage LED</a></li>
+        <li><a href="#catalog" class="nav-item-link" onclick="filterCat('interior')">Confort & Intérieur</a></li>
+        <li><a href="#catalog" class="nav-item-link" onclick="filterCat('styling')">Tuning & Carrosserie</a></li>
+        <li><a href="#catalog" class="nav-item-link" onclick="filterCat('tools')">Outillage & Batteries</a></li>
+        <li><a href="#catalog" class="nav-item-link b2b-highlight" onclick="filterCat('bulk')">Espace Grossiste B2B</a></li>
+        <li><a href="#showroom" class="nav-item-link">Showroom & Dépôt</a></li>
       </ul>
     </div>
   </nav>
@@ -339,7 +339,7 @@
     <div class="container hero-banner-grid">
       <!-- Promo Banner -->
       <div class="hero-promo-card">
-        <span class="hero-promo-tag">★ Spécialiste N°1 au Maroc</span>
+        <span class="hero-promo-tag">Spécialiste N°1 au Maroc</span>
         <h2 class="hero-promo-title">
           Tous les <span>Accessoires Automobiles</span> au Meilleur Prix
         </h2>
@@ -348,10 +348,10 @@
         </p>
         <div class="hero-promo-actions">
           <a href="#catalog" class="btn-hero-cta">
-            📦 Découvrir les Nouveautés
+            Découvrir les Nouveautés
           </a>
           <a href="https://api.whatsapp.com/send/?phone=212666349813&text=Bonjour+ABAZAR%2C+je+souhaite+demander+un+devis&type=phone_number&app_absent=0" target="_blank" class="btn-hero-wa">
-            💬 Devis Express WhatsApp
+            Devis Express WhatsApp
           </a>
         </div>
       </div>
@@ -359,7 +359,6 @@
       <!-- Vehicle Finder Widget -->
       <div class="vehicle-selector-card">
         <div class="vehicle-card-head">
-          <span>🚗</span>
           <h3>Trouvez vos Accessoires</h3>
         </div>
 
@@ -389,17 +388,17 @@
         </div>
 
         <button class="btn-search-vehicle" onclick="filterByVehicle()">
-          🔍 Afficher les Produits Compatibles
+          Afficher les Produits Compatibles
         </button>
       </div>
     </div>
   </section>
 
-  <!-- 5. BLOCK REASSURANCE -->
+  <!-- 5. BLOCK REASSURANCE (NO EMOJIS) -->
   <section class="reassurance-section">
     <div class="container reassurance-grid">
       <div class="reassurance-block">
-        <div class="reassurance-icon">🚚</div>
+        <div class="reassurance-icon">24h</div>
         <div class="reassurance-text">
           <h4>Expédition Rapide 24/48h</h4>
           <p>Livraison dans toutes les villes via CTM, Ghazala & SDTM.</p>
@@ -407,7 +406,7 @@
       </div>
 
       <div class="reassurance-block">
-        <div class="reassurance-icon" style="color: var(--primary-red);">💳</div>
+        <div class="reassurance-icon" style="color: var(--primary-red);">B2B</div>
         <div class="reassurance-text">
           <h4>Paiement & Devis B2B</h4>
           <p>Paiement sécurisé à la livraison ou facturation pro.</p>
@@ -415,15 +414,15 @@
       </div>
 
       <div class="reassurance-block">
-        <div class="reassurance-icon" style="color: var(--whatsapp-green);">📞</div>
+        <div class="reassurance-icon" style="color: var(--whatsapp-green);">SAV</div>
         <div class="reassurance-text">
-          <h4>Conseillers à votre écoute</h4>
+          <h4>Conseillers Dédiés</h4>
           <p>Assistance WhatsApp au 06 66 34 98 13.</p>
         </div>
       </div>
 
       <div class="reassurance-block">
-        <div class="reassurance-icon" style="color: var(--primary-red);">💎</div>
+        <div class="reassurance-icon" style="color: var(--primary-red);">DIR</div>
         <div class="reassurance-text">
           <h4>Direct Importateur</h4>
           <p>Stock réel permanent au meilleur tarif grossiste.</p>
@@ -432,7 +431,7 @@
     </div>
   </section>
 
-  <!-- 6. CATEGORY TILES -->
+  <!-- 6. CATEGORY TILES (NO EMOJIS) -->
   <section class="category-tiles-section">
     <div class="container">
       <div class="section-title-box">
@@ -441,39 +440,39 @@
 
       <div class="cat-tiles-grid">
         <div class="cat-tile-card" onclick="filterCat('lighting')">
-          <div class="cat-tile-icon">💡</div>
+          <div class="cat-tile-tag">Catégorie 01</div>
           <div class="cat-tile-title">Éclairage LED & Feux</div>
         </div>
 
         <div class="cat-tile-card" onclick="filterCat('interior')">
-          <div class="cat-tile-icon">🛡️</div>
+          <div class="cat-tile-tag">Catégorie 02</div>
           <div class="cat-tile-title">Pare-Soleil & Volant</div>
         </div>
 
         <div class="cat-tile-card" onclick="filterCat('styling')">
-          <div class="cat-tile-icon">🏎️</div>
+          <div class="cat-tile-tag">Catégorie 03</div>
           <div class="cat-tile-title">Tuning & Aérodynamique</div>
         </div>
 
         <div class="cat-tile-card" onclick="filterCat('tools')">
-          <div class="cat-tile-icon">🔧</div>
+          <div class="cat-tile-tag">Catégorie 04</div>
           <div class="cat-tile-title">Outillage & Clés de Roue</div>
         </div>
 
         <div class="cat-tile-card" onclick="filterCat('tools')">
-          <div class="cat-tile-icon">🔋</div>
+          <div class="cat-tile-tag">Catégorie 05</div>
           <div class="cat-tile-title">Piles VARTA Télécommandes</div>
         </div>
 
         <div class="cat-tile-card" onclick="filterCat('bulk')">
-          <div class="cat-tile-icon">📦</div>
+          <div class="cat-tile-tag">B2B Pro</div>
           <div class="cat-tile-title">Présentoirs Magasin B2B</div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- 7. PRODUCT CATALOG -->
+  <!-- 7. PRODUCT CATALOG (NO EMOJIS) -->
   <section class="catalog-section" id="catalog">
     <div class="container">
       <div class="section-title-box">
@@ -484,19 +483,19 @@
       <div class="catalog-toolbar-card">
         <div class="cat-filter-pills-bar">
           <button class="cat-filter-btn active" data-cat="all" onclick="filterCat('all')">Tous les Articles</button>
-          <button class="cat-filter-btn" data-cat="lighting" onclick="filterCat('lighting')">💡 Éclairage LED</button>
-          <button class="cat-filter-btn" data-cat="interior" onclick="filterCat('interior')">🛡️ Confort Intérieur</button>
-          <button class="cat-filter-btn" data-cat="styling" onclick="filterCat('styling')">🏎️ Tuning & Styling</button>
-          <button class="cat-filter-btn" data-cat="tools" onclick="filterCat('tools')">🔧 Outillage & Batteries</button>
-          <button class="cat-filter-btn" data-cat="bulk" onclick="filterCat('bulk')">📦 Présentoirs B2B</button>
+          <button class="cat-filter-btn" data-cat="lighting" onclick="filterCat('lighting')">Éclairage LED</button>
+          <button class="cat-filter-btn" data-cat="interior" onclick="filterCat('interior')">Confort Intérieur</button>
+          <button class="cat-filter-btn" data-cat="styling" onclick="filterCat('styling')">Tuning & Styling</button>
+          <button class="cat-filter-btn" data-cat="tools" onclick="filterCat('tools')">Outillage & Batteries</button>
+          <button class="cat-filter-btn" data-cat="bulk" onclick="filterCat('bulk')">Présentoirs B2B</button>
         </div>
 
         <div class="pricing-mode-tabs">
           <button class="pricing-tab-btn active" id="btnWholesale" onclick="setPriceMode('wholesale')">
-            🏢 Tarifs Grossiste B2B
+            Tarifs Grossiste B2B
           </button>
           <button class="pricing-tab-btn" id="btnRetail" onclick="setPriceMode('retail')">
-            🛒 Tarifs Publics
+            Tarifs Publics
           </button>
         </div>
       </div>
@@ -526,32 +525,32 @@
 
           <div class="showroom-info-table">
             <div class="showroom-info-row">
-              <strong>📍 Adresse :</strong>
+              <strong>Adresse :</strong>
               <span>8GQ3+VJ4, Route Biougra, Aït Melloul, Agadir 80000, Maroc</span>
             </div>
 
             <div class="showroom-info-row">
-              <strong>📞 WhatsApp :</strong>
+              <strong>WhatsApp :</strong>
               <span>+212 666-349813 (06 66 34 98 13)</span>
             </div>
 
             <div class="showroom-info-row">
-              <strong>🕒 Horaires :</strong>
+              <strong>Horaires :</strong>
               <span>Lundi au Samedi : 09h00 – 19h30 (Dimanche fermé)</span>
             </div>
 
             <div class="showroom-info-row">
-              <strong>🌐 Site Web :</strong>
+              <strong>Site Web :</strong>
               <span>abazar.ma</span>
             </div>
           </div>
 
           <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
             <a href="https://maps.google.com/?q=8GQ3%2BVJ4+Ait+Melloul+Agadir" target="_blank" class="btn-hero-cta">
-              📍 Ouvrir dans Google Maps
+              Ouvrir dans Google Maps
             </a>
             <a href="https://api.whatsapp.com/send/?phone=212666349813&text=Bonjour+ABAZAR%2C+je+souhaite+demander+un+devis&type=phone_number&app_absent=0" target="_blank" class="btn-hero-wa">
-              💬 Contacter sur WhatsApp
+              Contacter sur WhatsApp
             </a>
           </div>
         </div>
@@ -559,7 +558,7 @@
     </div>
   </section>
 
-  <!-- 9. FOOTER -->
+  <!-- 9. FOOTER (NO EMOJIS) -->
   <footer class="main-ecommerce-footer">
     <div class="container">
       <div class="footer-columns-grid">
@@ -569,7 +568,7 @@
             ABAZAR est le spécialiste et grossiste d'accessoires automobiles au Maroc. Nous fournissons plus de 500 ateliers, garages et revendeurs avec des produits de haute qualité au meilleur prix direct importateur.
           </p>
           <div style="font-size: 0.85rem; color: #cbd5e1;">
-            📍 Route Biougra, Aït Melloul, Agadir
+            Route Biougra, Aït Melloul, Agadir
           </div>
         </div>
 
@@ -602,13 +601,13 @@
             Une question ou une commande urgente ?
           </p>
           <div style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: #ffffff; margin-bottom: 0.5rem;">
-            📱 06 66 34 98 13
+            06 66 34 98 13
           </div>
           <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem;">
             Lun – Sam : 09h00 à 19h30
           </p>
           <a href="https://api.whatsapp.com/send/?phone=212666349813&text=Bonjour+ABAZAR%2C+je+souhaite+demander+un+devis&type=phone_number&app_absent=0" target="_blank" class="btn-hero-wa" style="font-size: 0.82rem; padding: 0.55rem 1rem;">
-            💬 WhatsApp Direct
+            WhatsApp Direct
           </a>
         </div>
       </div>
@@ -616,7 +615,7 @@
       <div class="footer-bottom-bar">
         <span>© 2026 ABAZAR Auto Accessories (abazar.ma) - Tous droits réservés.</span>
         <a href="admin.html" class="footer-admin-link">
-          🔒 <span>Accès Espace Administration</span>
+          <span>Accès Espace Administration</span>
         </a>
       </div>
     </div>
@@ -627,7 +626,7 @@
     <div class="cart-sliding-drawer">
       <div class="cart-drawer-header">
         <h2>
-          🛒 <span id="cartDrawerTitle">Mon Panier de Commande</span>
+          <span id="cartDrawerTitle">Mon Panier de Commande</span>
         </h2>
         <button class="btn-close-drawer" onclick="closeCartDrawer()" title="Fermer">✕</button>
       </div>
@@ -661,7 +660,7 @@
 
   <!-- Supabase Cloud Database SDK & Config -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=2026.1"></script>
-  <script src="app.js?v=2026.6"></script>
+  <script src="supabase-client.js?v=2026.2"></script>
+  <script src="app.js?v=2026.10"></script>
 </body>
 </html>
