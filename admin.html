@@ -66,8 +66,14 @@
 
     <!-- Main Dashboard -->
     <main class="admin-main">
-      <!-- KPI Stats -->
-      <div class="kpi-grid">
+      <div class="admin-tabs" style="margin-bottom: 2rem; display: flex; gap: 1rem; border-bottom: 1px solid var(--border-dark); padding-bottom: 0.5rem;">
+        <button id="tabCatalog" class="admin-tab active" onclick="switchTab('catalog')" style="background: none; border: none; color: white; font-size: 1.1rem; cursor: pointer; padding: 0.5rem 1rem; border-bottom: 2px solid var(--accent-red);">Catalogue Produits</button>
+        <button id="tabOrders" class="admin-tab" onclick="switchTab('orders')" style="background: none; border: none; color: var(--text-muted); font-size: 1.1rem; cursor: pointer; padding: 0.5rem 1rem; border-bottom: 2px solid transparent;">Commandes Reçues</button>
+      </div>
+
+      <div id="catalogSection">
+        <!-- KPI Stats -->
+        <div class="kpi-grid">
         <div class="kpi-card">
           <div class="kpi-icon">CAT</div>
           <div class="kpi-data">
@@ -144,6 +150,36 @@
           </table>
         </div>
       </div>
+      </div> <!-- /catalogSection -->
+
+      <!-- Orders Dashboard Section -->
+      <div id="ordersSection" style="display: none;">
+        <div class="table-card">
+          <div class="table-toolbar">
+            <h2 style="margin: 0; font-size: 1.2rem;">Dernières Commandes</h2>
+            <button class="btn-refresh" onclick="fetchOrders()" style="padding: 0.5rem 1rem; background: var(--surface-light); border: 1px solid var(--border-dark); color: white; border-radius: 4px; cursor: pointer;">Actualiser</button>
+          </div>
+          
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Client</th>
+                  <th>Contact</th>
+                  <th>Ville / Adresse</th>
+                  <th>Total</th>
+                  <th>Statut</th>
+                  <th style="text-align: right;">Détails</th>
+                </tr>
+              </thead>
+              <tbody id="ordersTableBody">
+                <!-- Loaded dynamically via admin.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div> <!-- /ordersSection -->
     </main>
   </div>
 
@@ -220,6 +256,25 @@
           <button type="submit" class="btn-save">Enregistrer le Produit</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       ORDER DETAILS MODAL
+       ========================================================================== -->
+  <div class="modal-backdrop" id="orderModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2 class="modal-title">Détails de la Commande</h2>
+        <button class="modal-close" onclick="closeOrderModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="orderDetailsBody" style="color: white; line-height: 1.6;">
+        <!-- Injected via JS -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="closeOrderModal()">Fermer</button>
+        <button type="button" class="btn-save" id="btnMarkShipped" style="background: var(--accent-cyan);">Marquer Expédiée</button>
+      </div>
     </div>
   </div>
 

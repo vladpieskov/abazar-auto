@@ -641,11 +641,19 @@
           <span class="cart-final-total" id="cartDrawerTotal">0 DH</span>
         </div>
 
-        <button class="btn-submit-cart-whatsapp" onclick="checkoutWhatsApp()">
-          <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0012.04 2z"/>
-          </svg>
-          <span id="btnCheckoutLabel">Commander via WhatsApp</span>
+        <div id="checkoutForm" style="display: none; flex-direction: column; gap: 10px; margin-bottom: 15px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+          <h4 style="color: white; margin: 0 0 10px 0;">Informations de Livraison</h4>
+          <input type="text" id="checkoutName" placeholder="Nom Complet (Smyto)" class="search-input" required>
+          <input type="tel" id="checkoutPhone" placeholder="Numéro de Téléphone" class="search-input" required>
+          <input type="text" id="checkoutAddress" placeholder="Ville et Adresse (Position)" class="search-input" required>
+        </div>
+
+        <button class="btn-submit-cart-whatsapp" id="btnShowCheckout" onclick="showCheckoutForm()" style="background: var(--accent-cyan); margin-bottom: 10px;">
+          <span id="btnCheckoutLabel">Valider la Commande</span>
+        </button>
+        
+        <button class="btn-submit-cart-whatsapp" id="btnConfirmOrder" onclick="submitOrderToSupabase()" style="display: none; background: var(--whatsapp-green);">
+          <span>Confirmer et Envoyer</span>
         </button>
       </div>
     </div>

@@ -380,39 +380,88 @@ function renderCartDrawer() {
   if (totalEl) totalEl.textContent = `${cartTotal.toFixed(0)} DH`;
 }
 
-function checkoutWhatsApp() {
+function showCheckoutForm() {
   if (cart.length === 0) {
     alert(DICT[currentLang].cart_empty);
     return;
   }
+  
+  document.getElementById('checkoutForm').style.display = 'flex';
+  document.getElementById('btnShowCheckout').style.display = 'none';
+  document.getElementById('btnConfirmOrder').style.display = 'block';
+}
 
-  const nameInput = document.getElementById('cartClientName')?.value.trim() || 'Client';
-  const cityInput = document.getElementById('cartClientCity')?.value.trim() || 'Maroc';
+async function submitOrderToSupabase() {
+  const name = document.getElementById('checkoutName').value.trim();
+  const phone = document.getElementById('checkoutPhone').value.trim();
+  const address = document.getElementById('checkoutAddress').value.trim();
+
+  if (!name || !phone || !address) {
+    alert('Veuillez remplir tous les champs (Nom, Téléphone, Adresse) pour valider la commande.');
+    return;
+  }
+
+  if (cart.length === 0) return;
+
+  const btnConfirm = document.getElementById('btnConfirmOrder');
+  btnConfirm.innerHTML = 'Envoi en cours...';
+  btnConfirm.disabled = true;
 
   let totalAmount = 0;
-  let msg = `*COMMANDE / DEMANDE DE DEVIS - ABAZAR AUTO*\n`;
-  msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
-  msg += `*Client / Garage :* ${nameInput}\n`;
-  msg += `*Ville de Destination :* ${cityInput}\n`;
-  msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
-  msg += `*DÉTAIL DU PANIER :*\n\n`;
-
-  cart.forEach((item, i) => {
+  const itemsList = cart.map(item => {
     const lineTotal = item.unitPrice * item.packQty * item.packCount;
     totalAmount += lineTotal;
-    msg += `${i + 1}. *${item.name}*\n`;
-    msg += `   • Réf: ${item.sku}\n`;
-    msg += `   • Formule: ${item.tierLabel}\n`;
-    msg += `   • Quantité: ${item.packCount} x ${item.packQty * item.unitPrice} DH = *${lineTotal.toFixed(0)} DH*\n\n`;
+    return {
+      sku: item.sku,
+      name: item.name,
+      qty: item.packCount * item.packQty,
+      price: item.unitPrice,
+      total: lineTotal
+    };
   });
 
-  msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
-  msg += `*TOTAL ESTIMÉ :* *${totalAmount.toFixed(0)} DH*\n`;
-  msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
-  msg += `_Commande générée via abazar.ma_`;
+  try {
+    if (!window.supabaseClient) {
+      throw new Error("Erreur de connexion à la base de données. Supabase est indisponible.");
+    }
 
-  const waUrl = `https://api.whatsapp.com/send/?phone=212666349813&text=${encodeURIComponent(msg)}`;
-  window.open(waUrl, '_blank');
+    const { error } = await window.supabaseClient
+      .from('orders')
+      .insert([
+        {
+          customer_name: name,
+          customer_phone: phone,
+          customer_address: address,
+          total_amount: totalAmount,
+          items: itemsList,
+          status: 'pending'
+        }
+      ]);
+
+    if (error) throw error;
+
+    showToast('Commande envoyée avec succès !');
+    cart = [];
+    saveCart();
+    updateCartCount();
+    renderCart();
+    closeCartDrawer();
+    
+    // Reset form
+    document.getElementById('checkoutName').value = '';
+    document.getElementById('checkoutPhone').value = '';
+    document.getElementById('checkoutAddress').value = '';
+    document.getElementById('checkoutForm').style.display = 'none';
+    document.getElementById('btnShowCheckout').style.display = 'block';
+    document.getElementById('btnConfirmOrder').style.display = 'none';
+
+  } catch (err) {
+    alert("Une erreur s'est produite lors de l'envoi de la commande. " + err.message);
+    console.error(err);
+  } finally {
+    btnConfirm.innerHTML = '<span>Confirmer et Envoyer</span>';
+    btnConfirm.disabled = false;
+  }
 }
 
 function saveCart() {

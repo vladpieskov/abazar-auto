@@ -9,6 +9,7 @@ const AUTH_KEY = 'abazar_admin_session';
 const DEFAULT_PRODUCTS = [];
 
 let productsList = [];
+let ordersList = [];
 let currentImageBase64 = '';
 let searchFilter = '';
 let categoryFilter = 'all';
@@ -17,9 +18,37 @@ let categoryFilter = 'all';
 document.addEventListener('DOMContentLoaded', () => {
   checkAuth();
   loadProducts();
+  fetchOrders();
   renderProductsTable();
   updateKPIs();
 });
+
+// --- TAB NAVIGATION ---
+function switchTab(tab) {
+  const tabCatalog = document.getElementById('tabCatalog');
+  const tabOrders = document.getElementById('tabOrders');
+  const sectionCatalog = document.getElementById('catalogSection');
+  const sectionOrders = document.getElementById('ordersSection');
+
+  if (tab === 'catalog') {
+    tabCatalog.style.color = 'white';
+    tabCatalog.style.borderBottom = '2px solid var(--accent-red)';
+    tabOrders.style.color = 'var(--text-muted)';
+    tabOrders.style.borderBottom = '2px solid transparent';
+    
+    sectionCatalog.style.display = 'block';
+    sectionOrders.style.display = 'none';
+  } else {
+    tabOrders.style.color = 'white';
+    tabOrders.style.borderBottom = '2px solid var(--accent-red)';
+    tabCatalog.style.color = 'var(--text-muted)';
+    tabCatalog.style.borderBottom = '2px solid transparent';
+    
+    sectionCatalog.style.display = 'none';
+    sectionOrders.style.display = 'block';
+    fetchOrders(); // Refresh when opening tab
+  }
+}
 
 // --- AUTHENTICATION ---
 function handleLogin(e) {
@@ -444,4 +473,122 @@ function importCatalogJSON(event) {
   };
   reader.readAsText(file);
   event.target.value = '';
+}
+
+// ==========================================================================
+// ORDERS MANAGEMENT
+// ==========================================================================
+
+async function fetchOrders() {
+  if (!window.supabaseClient) return;
+  try {
+    const { data, error } = await window.supabaseClient
+      .from('orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    
+    ordersList = data || [];
+    renderOrdersTable();
+  } catch (err) {
+    console.error("Erreur chargement commandes:", err);
+  }
+}
+
+function renderOrdersTable() {
+  const tbody = document.getElementById('ordersTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  if (ordersList.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem;">Aucune commande pour le moment</td></tr>`;
+    return;
+  }
+
+  ordersList.forEach(order => {
+    const date = new Date(order.created_at).toLocaleString('fr-FR', { 
+      day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' 
+    });
+    
+    const statusColor = order.status === 'shipped' ? 'var(--accent-cyan)' : 'var(--accent-amber)';
+    const statusText = order.status === 'shipped' ? 'Expédiée' : 'En attente';
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${date}</td>
+      <td style="font-weight: bold;">${order.customer_name}</td>
+      <td><a href="tel:${order.customer_phone}" style="color: var(--accent-cyan); text-decoration: none;">${order.customer_phone}</a></td>
+      <td>${order.customer_address}</td>
+      <td style="font-weight: bold; color: var(--accent-red);">${order.total_amount} DH</td>
+      <td><span style="background: ${statusColor}20; color: ${statusColor}; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">${statusText}</span></td>
+      <td style="text-align: right;">
+        <button class="btn-edit" onclick="viewOrderDetails('${order.id}')" style="background: var(--surface-light); border: 1px solid var(--border-dark);">Voir Détails</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function viewOrderDetails(id) {
+  const order = ordersList.find(o => o.id === id);
+  if (!order) return;
+
+  const modal = document.getElementById('orderModal');
+  const body = document.getElementById('orderDetailsBody');
+  const btnShipped = document.getElementById('btnMarkShipped');
+  
+  let itemsHtml = '<ul style="list-style: none; padding: 0; margin-top: 10px;">';
+  if (order.items && Array.isArray(order.items)) {
+    order.items.forEach(item => {
+      itemsHtml += `<li style="padding: 10px; background: rgba(255,255,255,0.05); margin-bottom: 5px; border-radius: 4px; display: flex; justify-content: space-between;">
+        <span>${item.qty}x ${item.name} (Réf: ${item.sku})</span>
+        <span style="font-weight: bold;">${item.price * item.qty} DH</span>
+      </li>`;
+    });
+  }
+  itemsHtml += '</ul>';
+
+  body.innerHTML = `
+    <div style="margin-bottom: 15px;"><strong>Client :</strong> ${order.customer_name}</div>
+    <div style="margin-bottom: 15px;"><strong>Téléphone :</strong> <a href="tel:${order.customer_phone}" style="color: var(--accent-cyan);">${order.customer_phone}</a></div>
+    <div style="margin-bottom: 15px;"><strong>Adresse / Localisation :</strong> ${order.customer_address}</div>
+    <div style="margin-bottom: 15px;"><strong>Statut :</strong> ${order.status === 'shipped' ? 'Expédiée' : 'En attente'}</div>
+    <hr style="border: 0; border-top: 1px solid var(--border-dark); margin: 15px 0;">
+    <div><strong>Produits commandés :</strong></div>
+    ${itemsHtml}
+    <div style="text-align: right; margin-top: 15px; font-size: 1.2rem;">
+      <strong>Total : <span style="color: var(--accent-red);">${order.total_amount} DH</span></strong>
+    </div>
+  `;
+
+  btnShipped.style.display = order.status === 'shipped' ? 'none' : 'inline-block';
+  btnShipped.onclick = () => markOrderShipped(order.id);
+
+  modal.classList.add('open');
+}
+
+function closeOrderModal() {
+  const modal = document.getElementById('orderModal');
+  if (modal) modal.classList.remove('open');
+}
+
+async function markOrderShipped(id) {
+  if (!window.supabaseClient) return;
+  if (!confirm("Marquer cette commande comme expédiée / traitée ?")) return;
+  
+  try {
+    const { error } = await window.supabaseClient
+      .from('orders')
+      .update({ status: 'shipped' })
+      .eq('id', id);
+      
+    if (error) throw error;
+    
+    closeOrderModal();
+    fetchOrders(); // Refresh table
+  } catch (err) {
+    alert("Erreur lors de la mise à jour du statut.");
+    console.error(err);
+  }
 }
