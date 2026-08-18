@@ -157,7 +157,50 @@ function filterByVehicle() {
 function updateVehicleModels() {}
 
 // --- CATALOG RENDERING ---
+function renderCategoryFilters() {
+  const filterBar = document.querySelector('.cat-filter-pills-bar');
+  if (!filterBar) return;
+
+  const uniqueCats = new Set(PRODUCTS.map(p => p.category));
+  
+  // Clear existing (except the 'all' button if you want to keep it, but let's just rebuild all)
+  const allLabel = DICT[currentLang].cat_all;
+  let html = `<button class="cat-filter-btn ${currentCategory === 'all' ? 'active' : ''}" onclick="filterCat('all')">${allLabel}</button>`;
+  
+  const catLabels = {
+    lighting: 'Éclairage LED',
+    styling: 'Tuning & Styling',
+    interior: 'Intérieur & Confort',
+    tools: 'Outillage',
+    bulk: 'Lots B2B'
+  };
+
+  uniqueCats.forEach(cat => {
+    const label = catLabels[cat] || cat;
+    const isActive = currentCategory === cat ? 'active' : '';
+    html += `<button class="cat-filter-btn ${isActive}" onclick="filterCat('${cat}')">${label}</button>`;
+  });
+
+  filterBar.innerHTML = html;
+
+  // Also update the vehicleCategory select if it exists
+  const vehicleCatSelect = document.getElementById('vehicleCategory');
+  if (vehicleCatSelect) {
+    let selectHtml = `<option value="all">Toutes les catégories</option>`;
+    uniqueCats.forEach(cat => {
+      const label = catLabels[cat] || cat;
+      selectHtml += `<option value="${cat}">${label}</option>`;
+    });
+    // Keep the current selection if possible
+    const currentVal = vehicleCatSelect.value;
+    vehicleCatSelect.innerHTML = selectHtml;
+    vehicleCatSelect.value = currentVal;
+  }
+}
+
 function renderProducts() {
+  renderCategoryFilters();
+  
   const container = document.getElementById('productsContainer');
   if (!container) return;
 

@@ -255,6 +255,12 @@ function updateKPIs() {
   if (categoriesEl) {
     const uniqueCats = new Set(productsList.map(p => p.category));
     categoriesEl.textContent = uniqueCats.size;
+    
+    // Update Datalist options dynamically
+    const dataList = document.getElementById('categoryOptions');
+    if (dataList) {
+      dataList.innerHTML = Array.from(uniqueCats).map(cat => `<option value="${cat}"></option>`).join('');
+    }
   }
   if (wholesaleEl) {
     wholesaleEl.textContent = productsList.filter(p => p.priceWholesale).length;

@@ -210,13 +210,10 @@
 
             <div class="form-group">
               <label>Catégorie *</label>
-              <select class="form-control" id="productCategory" required>
-                <option value="lighting">💡 Éclairage LED</option>
-                <option value="styling">🏎️ Tuning & Styling</option>
-                <option value="interior">🛡️ Intérieur & Confort</option>
-                <option value="tools">🔧 Outillage & Piles</option>
-                <option value="bulk">📦 Présentoirs & Lots B2B</option>
-              </select>
+              <input type="text" class="form-control" id="productCategory" list="categoryOptions" required placeholder="Saisir ou choisir une catégorie">
+              <datalist id="categoryOptions">
+                <!-- Dynamically populated by admin.js -->
+              </datalist>
             </div>
           </div>
 
