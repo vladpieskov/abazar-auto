@@ -200,7 +200,7 @@ function renderProducts() {
           <span class="badge-flag-stock">
             ${DICT[currentLang].stock_status}
           </span>
-          <img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.src='assets/products/led-drl-daytime-running.jpg'">
+          <img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">
         </div>
 
         <div class="product-card-body">

@@ -319,7 +319,7 @@ function openEditProductModal(id) {
   if (urlInput) {
     urlInput.value = (product.image && !product.image.startsWith('data:')) ? product.image : '';
   }
-  showImagePreview(product.image || 'assets/products/led-drl-daytime-running.jpg');
+  showImagePreview(product.image || '');
 
   document.getElementById('productModal').classList.add('open');
 }
@@ -341,7 +341,8 @@ function handleSaveProduct(e) {
     const priceWholesale = parseFloat(document.getElementById('priceWholesale')?.value) || 0;
     const minQty = parseInt(document.getElementById('minQty')?.value) || 10;
 
-    const image = currentImageBase64 || 'assets/products/led-drl-daytime-running.jpg';
+    const urlInput = document.getElementById('productImageUrl')?.value.trim();
+    const image = currentImageBase64 || urlInput || '';
 
     if (!name || !sku) {
       alert('Veuillez remplir le nom et la référence du produit.');
