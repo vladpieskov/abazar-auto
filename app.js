@@ -94,6 +94,7 @@ async function syncFromSupabase() {
         priceWholesale: Number(row.price_wholesale || row.priceWholesale || 0),
         minQty: Number(row.min_qty || row.minQty || 10),
         rating: Number(row.rating || 5),
+        variants: row.variants || [],
         image: row.image || 'assets/hero_car.jpg'
       }));
       localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS));
@@ -237,6 +238,17 @@ function renderProducts() {
     const ratingVal = p.rating || 5;
     const starsHtml = '★'.repeat(ratingVal) + '☆'.repeat(5 - ratingVal);
 
+    // Build variant selector if product has variants
+    const hasVariants = p.variants && p.variants.length > 0;
+    const variantHtml = hasVariants ? `
+      <div style="margin-bottom: 0.5rem;">
+        <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; display: block; margin-bottom: 0.3rem;">Option / Taille</label>
+        <select id="variant-${p.id}" class="variant-select" style="width: 100%; padding: 0.45rem 0.65rem; background: var(--bg-input); border: 1px solid var(--border-subtle); color: #fff; border-radius: var(--radius-xs); font-size: 0.82rem; font-weight: 600;">
+          ${p.variants.map((v, i) => `<option value="${v}" ${i === 0 ? 'selected' : ''}>${v}</option>`).join('')}
+        </select>
+      </div>
+    ` : '';
+
     return `
       <article class="product-item-card">
         <div class="product-image-container">
@@ -258,6 +270,8 @@ function renderProducts() {
             </div>
             <span class="price-sub-note">${subtext}</span>
           </div>
+
+          ${variantHtml}
 
           <div class="product-card-buttons">
             <button class="btn-card-add-cart" onclick="addToCart('${p.id}')">
@@ -298,7 +312,11 @@ function addToCart(productId) {
   const packQty = isWholesale ? (p.minQty || 10) : 1;
   const tierLabel = isWholesale ? `Lot Grossiste (${packQty} pcs)` : '1 Pièce';
 
-  const existingIndex = cart.findIndex(item => item.id === productId && item.isWholesale === isWholesale);
+  // Get selected variant if available
+  const variantSelect = document.getElementById(`variant-${p.id}`);
+  const selectedVariant = variantSelect ? variantSelect.value : '';
+
+  const existingIndex = cart.findIndex(item => item.id === productId && item.isWholesale === isWholesale && item.variant === selectedVariant);
 
   if (existingIndex > -1) {
     cart[existingIndex].packCount += 1;
@@ -312,7 +330,8 @@ function addToCart(productId) {
       tierLabel: tierLabel,
       unitPrice: unitPrice,
       packQty: packQty,
-      packCount: 1
+      packCount: 1,
+      variant: selectedVariant
     });
   }
 
@@ -387,6 +406,8 @@ function renderCartDrawer() {
     const itemTotal = item.unitPrice * item.packQty * item.packCount;
     cartTotal += itemTotal;
 
+    const variantTag = item.variant ? `<span style="display: inline-block; background: rgba(225,29,72,0.15); color: var(--primary-red); padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; margin-top: 3px;">${item.variant}</span>` : '';
+
     return `
       <div class="cart-row-item">
         <div class="cart-thumb-box">
@@ -395,6 +416,7 @@ function renderCartDrawer() {
         <div class="cart-info-box">
           <h4>${item.name}</h4>
           <span>${item.tierLabel} • ${item.unitPrice} DH/u</span>
+          ${variantTag}
           <div class="cart-qty-ctrls">
             <button class="btn-ctrl-qty" onclick="updateCartItemCount(${index}, -1)">-</button>
             <span class="cart-qty-val">${item.packCount}</span>
@@ -415,6 +437,7 @@ function renderCartDrawer() {
         Coordonnées de Livraison / Devis :
       </span>
       <input type="text" id="cartClientName" placeholder="Nom ou Nom du Garage / Magasin" style="width: 100%; padding: 0.55rem 0.75rem; border: 1px solid var(--border-subtle); background: var(--bg-darkest); color: #ffffff; border-radius: 4px; font-size: 0.85rem;">
+      <input type="tel" id="cartClientPhone" placeholder="Numéro de Téléphone (ex: 06 66 34 98 13)" style="width: 100%; padding: 0.55rem 0.75rem; border: 1px solid var(--border-subtle); background: var(--bg-darkest); color: #ffffff; border-radius: 4px; font-size: 0.85rem;">
       <input type="text" id="cartClientCity" placeholder="Ville de Livraison (ex: Agadir / Casablanca / Marrakech)" style="width: 100%; padding: 0.55rem 0.75rem; border: 1px solid var(--border-subtle); background: var(--bg-darkest); color: #ffffff; border-radius: 4px; font-size: 0.85rem;">
     </div>
   `;
@@ -435,12 +458,12 @@ function showCheckoutForm() {
 }
 
 async function submitOrderToSupabase() {
-  const name = document.getElementById('checkoutName').value.trim();
-  const phone = document.getElementById('checkoutPhone').value.trim();
-  const address = document.getElementById('checkoutAddress').value.trim();
+  const name = document.getElementById('cartClientName')?.value.trim() || document.getElementById('checkoutName')?.value.trim() || '';
+  const phone = document.getElementById('cartClientPhone')?.value.trim() || document.getElementById('checkoutPhone')?.value.trim() || '';
+  const address = document.getElementById('cartClientCity')?.value.trim() || document.getElementById('checkoutAddress')?.value.trim() || '';
 
   if (!name || !phone || !address) {
-    alert('Veuillez remplir tous les champs (Nom, Téléphone, Adresse) pour valider la commande.');
+    alert('Veuillez remplir tous les champs (Nom, Téléphone, Ville) dans la section "Coordonnées de Livraison" pour valider la commande.');
     return;
   }
 
@@ -457,6 +480,7 @@ async function submitOrderToSupabase() {
     return {
       sku: item.sku,
       name: item.name,
+      variant: item.variant || '',
       qty: item.packCount * item.packQty,
       price: item.unitPrice,
       total: lineTotal

@@ -140,6 +140,7 @@ async function saveProductToCloud(product) {
       price_wholesale: product.priceWholesale,
       min_qty: product.minQty || 10,
       rating: product.rating || 5,
+      variants: product.variants || [],
       image: product.image
     };
     await sb.from('products').upsert([row]);
@@ -349,6 +350,9 @@ function openEditProductModal(id) {
   const minQtyEl = document.getElementById('minQty');
   if (minQtyEl) minQtyEl.value = product.minQty || 10;
 
+  const variantsEl = document.getElementById('productVariants');
+  if (variantsEl) variantsEl.value = (product.variants || []).join(', ');
+
   currentImageBase64 = product.image || '';
   const urlInput = document.getElementById('productImageUrl');
   if (urlInput) {
@@ -375,6 +379,8 @@ function handleSaveProduct(e) {
     const priceRetail = parseFloat(document.getElementById('priceRetail')?.value) || 0;
     const priceWholesale = parseFloat(document.getElementById('priceWholesale')?.value) || 0;
     const minQty = parseInt(document.getElementById('minQty')?.value) || 10;
+    const variantsRaw = document.getElementById('productVariants')?.value.trim() || '';
+    const variants = variantsRaw ? variantsRaw.split(',').map(v => v.trim()).filter(v => v) : [];
 
     const urlInput = document.getElementById('productImageUrl')?.value.trim();
     const image = currentImageBase64 || urlInput || '';
@@ -398,6 +404,7 @@ function handleSaveProduct(e) {
           priceRetail,
           priceWholesale,
           minQty,
+          variants,
           image
         };
         savedProduct = productsList[index];
@@ -413,6 +420,7 @@ function handleSaveProduct(e) {
         priceRetail,
         priceWholesale,
         minQty,
+        variants,
         image
       };
       productsList.unshift(savedProduct);
