@@ -476,7 +476,28 @@ function importCatalogJSON(event) {
           saveProducts();
           renderProductsTable();
           updateKPIs();
-          alert(`✓ ${imported.length} produits importés avec succès !`);
+          
+          // Also sync to Supabase
+          const sb = typeof getSupabase === 'function' ? getSupabase() : null;
+          if (sb) {
+            const rows = imported.map(p => ({
+              id: p.id,
+              sku: p.sku,
+              name: p.name,
+              category: p.category,
+              price_retail: p.priceRetail,
+              price_wholesale: p.priceWholesale,
+              min_qty: p.minQty || 10,
+              rating: p.rating || 5,
+              variants: p.variants || [],
+              image: p.image
+            }));
+            sb.from('products').upsert(rows).then(({error}) => {
+              if (error) console.warn('Supabase bulk upsert error:', error);
+            });
+          }
+
+          alert(`✓ ${imported.length} produits importés avec succès et synchronisés avec le cloud !`);
         }
       } else {
         alert('Le fichier JSON ne contient pas une liste valide de produits.');
