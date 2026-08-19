@@ -242,14 +242,8 @@ function renderProducts() {
   }
 
   container.innerHTML = filtered.map(p => {
-    const isWholesale = currentPriceMode === 'wholesale';
-    const price = isWholesale ? p.priceWholesale : p.priceRetail;
-    const subtext = isWholesale 
-      ? `${DICT[currentLang].wholesale_label} (min. ${p.minQty || 10} pcs)` 
-      : DICT[currentLang].retail_label;
-
     const orderMsg = encodeURIComponent(
-      `Bonjour ABAZAR, je souhaite commander l'accessoire : ${p.name} (Réf: ${p.sku}) au prix de ${price} DH.`
+      `Bonjour ABAZAR, je souhaite avoir le prix de l'accessoire : ${p.name} (Réf: ${p.sku}).`
     );
     const waLink = `https://api.whatsapp.com/send/?phone=212666349813&text=${orderMsg}`;
 
@@ -281,13 +275,6 @@ function renderProducts() {
           <h3 class="product-item-title">${p.name}</h3>
 
           <div class="product-rating-stars">${starsHtml}</div>
-
-          <div class="product-pricing-wrap">
-            <div>
-              <span class="price-big-amount">${price} DH</span>
-            </div>
-            <span class="price-sub-note">${subtext}</span>
-          </div>
 
           ${variantHtml}
 
