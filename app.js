@@ -117,18 +117,18 @@ async function syncFromSupabase() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  loadCatalogData();
-  loadCart();
-  updateCartBadge();
-  checkStoreStatus();
+// Initialize app immediately
+loadCatalogData();
+loadCart();
+updateCartBadge();
+checkStoreStatus();
 
-  // Listen for admin changes from other tabs
-  window.addEventListener('storage', (e) => {
-    if (e.key === STORAGE_KEY) {
-      loadCatalogData();
-    }
-  });
+// Listen for admin changes from other tabs
+window.addEventListener('storage', (e) => {
+  if (e.key === STORAGE_KEY) {
+    loadCatalogData();
+  }
+});
 
   const searchInput = document.getElementById('searchInput');
   if (searchInput) {
@@ -147,7 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.target === cartOverlay) closeCartDrawer();
     });
   }
-});
 
 // --- SEARCH & VEHICLE FILTER ---
 function triggerSearch() {
