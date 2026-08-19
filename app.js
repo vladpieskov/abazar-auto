@@ -230,10 +230,7 @@ function renderProducts() {
   if (filtered.length === 0) {
     if (isFetchingProducts) {
       container.innerHTML = `
-        <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 4rem 1.5rem;">
-          <p style="font-size: 1.15rem; font-weight: 700; color: #ffffff; margin-bottom: 0.4rem;">Chargement du catalogue...</p>
-          <p style="font-size: 0.88rem;">Veuillez patienter quelques instants.</p>
-        </div>
+        <div style="grid-column: 1/-1; padding: 2rem;"></div>
       `;
     } else {
       container.innerHTML = `
