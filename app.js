@@ -13,6 +13,7 @@ let currentPriceMode = 'wholesale';
 let currentCategory = 'all';
 let searchQuery = '';
 let cart = [];
+let isFetchingProducts = false;
 
 const DICT = {
   fr: {
@@ -209,8 +210,6 @@ function renderCategoryFilters() {
     vehicleCatSelect.value = currentVal;
   }
 }
-
-let isFetchingProducts = false;
 
 function renderProducts() {
   renderCategoryFilters();
