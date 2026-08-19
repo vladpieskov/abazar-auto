@@ -25,7 +25,8 @@ const DICT = {
     toast_added: "Produit ajouté au panier",
     stock_status: "En Stock",
     wholesale_label: "Tarif Grossiste",
-    retail_label: "Prix Public Conseillé"
+    retail_label: "Prix Public Conseillé",
+    cat_all: "Tous les articles"
   },
   ar: {
     add_to_cart: "أضف إلى السلة",
@@ -37,7 +38,8 @@ const DICT = {
     toast_added: "تمت إضافة المنتج إلى السلة بنجاح",
     stock_status: "متوفر بالمخزن",
     wholesale_label: "سعر الجملة",
-    retail_label: "سعر البيع المقترح"
+    retail_label: "سعر البيع المقترح",
+    cat_all: "جميع المنتجات"
   },
   en: {
     add_to_cart: "Add to Cart",
@@ -49,7 +51,8 @@ const DICT = {
     toast_added: "Item added to cart",
     stock_status: "In Stock",
     wholesale_label: "Wholesale Rate",
-    retail_label: "MSRP Retail Price"
+    retail_label: "MSRP Retail Price",
+    cat_all: "All Products"
   }
 };
 
@@ -82,6 +85,9 @@ async function syncFromSupabase() {
   const sb = typeof getSupabase === 'function' ? getSupabase() : null;
   if (!sb) return;
 
+  isFetchingProducts = true;
+  renderProducts();
+
   try {
     const { data, error } = await sb.from('products').select('*').order('created_at', { ascending: false });
     if (!error && Array.isArray(data)) {
@@ -99,15 +105,15 @@ async function syncFromSupabase() {
           image: row.image || 'assets/hero_car.jpg'
         }));
         localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS));
-        renderProducts();
       } else {
-        // Supabase is empty, but if we have local products, maybe push them?
-        // For now, just don't wipe out the local products if Supabase is empty.
         console.log('Supabase is empty. Keeping local products.');
       }
     }
   } catch (err) {
     console.warn('Supabase sync note:', err);
+  } finally {
+    isFetchingProducts = false;
+    renderProducts();
   }
 }
 
@@ -205,6 +211,8 @@ function renderCategoryFilters() {
   }
 }
 
+let isFetchingProducts = false;
+
 function renderProducts() {
   renderCategoryFilters();
   
@@ -220,12 +228,21 @@ function renderProducts() {
   });
 
   if (filtered.length === 0) {
-    container.innerHTML = `
-      <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 4rem 1.5rem; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-        <p style="font-size: 1.15rem; font-weight: 700; color: #ffffff; margin-bottom: 0.4rem;">Aucun article dans le catalogue pour le moment.</p>
-        <p style="font-size: 0.88rem; max-width: 420px; margin-inline: auto;">Ajoutez vos produits depuis le panneau d'administration pour les afficher ici.</p>
-      </div>
-    `;
+    if (isFetchingProducts) {
+      container.innerHTML = `
+        <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 4rem 1.5rem;">
+          <p style="font-size: 1.15rem; font-weight: 700; color: #ffffff; margin-bottom: 0.4rem;">Chargement du catalogue...</p>
+          <p style="font-size: 0.88rem;">Veuillez patienter quelques instants.</p>
+        </div>
+      `;
+    } else {
+      container.innerHTML = `
+        <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 4rem 1.5rem; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+          <p style="font-size: 1.15rem; font-weight: 700; color: #ffffff; margin-bottom: 0.4rem;">Aucun article dans le catalogue pour le moment.</p>
+          <p style="font-size: 0.88rem; max-width: 420px; margin-inline: auto;">Ajoutez vos produits depuis le panneau d'administration pour les afficher ici.</p>
+        </div>
+      `;
+    }
     return;
   }
 
