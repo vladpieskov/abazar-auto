@@ -85,20 +85,26 @@ async function syncFromSupabase() {
   try {
     const { data, error } = await sb.from('products').select('*').order('created_at', { ascending: false });
     if (!error && Array.isArray(data)) {
-      PRODUCTS = data.map(row => ({
-        id: row.id,
-        sku: row.sku,
-        name: row.name,
-        category: row.category,
-        priceRetail: Number(row.price_retail || row.priceRetail || 0),
-        priceWholesale: Number(row.price_wholesale || row.priceWholesale || 0),
-        minQty: Number(row.min_qty || row.minQty || 10),
-        rating: Number(row.rating || 5),
-        variants: row.variants || [],
-        image: row.image || 'assets/hero_car.jpg'
-      }));
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS));
-      renderProducts();
+      if (data.length > 0) {
+        PRODUCTS = data.map(row => ({
+          id: row.id,
+          sku: row.sku,
+          name: row.name,
+          category: row.category,
+          priceRetail: Number(row.price_retail || row.priceRetail || 0),
+          priceWholesale: Number(row.price_wholesale || row.priceWholesale || 0),
+          minQty: Number(row.min_qty || row.minQty || 10),
+          rating: Number(row.rating || 5),
+          variants: row.variants || [],
+          image: row.image || 'assets/hero_car.jpg'
+        }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS));
+        renderProducts();
+      } else {
+        // Supabase is empty, but if we have local products, maybe push them?
+        // For now, just don't wipe out the local products if Supabase is empty.
+        console.log('Supabase is empty. Keeping local products.');
+      }
     }
   } catch (err) {
     console.warn('Supabase sync note:', err);
