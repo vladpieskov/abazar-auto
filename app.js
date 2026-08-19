@@ -162,10 +162,15 @@ function renderCategoryFilters() {
   const filterBar = document.querySelector('.cat-filter-pills-bar');
   if (!filterBar) return;
 
+  if (PRODUCTS.length === 0) {
+    filterBar.innerHTML = '';
+    return;
+  }
+
   const uniqueCats = new Set(PRODUCTS.map(p => p.category));
   
   // Clear existing (except the 'all' button if you want to keep it, but let's just rebuild all)
-  const allLabel = DICT[currentLang].cat_all;
+  const allLabel = DICT[currentLang].cat_all || 'Tous les produits';
   let html = `<button class="cat-filter-btn ${currentCategory === 'all' ? 'active' : ''}" onclick="filterCat('all')">${allLabel}</button>`;
   
   const catLabels = {
@@ -214,6 +219,9 @@ function renderProducts() {
   });
 
   if (filtered.length === 0) {
+    const toolbar = document.getElementById('catalogToolbar');
+    if (toolbar && PRODUCTS.length === 0) toolbar.style.display = 'none';
+
     container.innerHTML = `
       <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 4rem 1.5rem; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
         <p style="font-size: 1.15rem; font-weight: 700; color: #ffffff; margin-bottom: 0.4rem;">Aucun article dans le catalogue pour le moment.</p>
@@ -222,6 +230,9 @@ function renderProducts() {
     `;
     return;
   }
+
+  const toolbar = document.getElementById('catalogToolbar');
+  if (toolbar) toolbar.style.display = 'flex';
 
   container.innerHTML = filtered.map(p => {
     const isWholesale = currentPriceMode === 'wholesale';
