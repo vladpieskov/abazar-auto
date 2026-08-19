@@ -480,9 +480,23 @@
       </div>
 
       <!-- Toolbar -->
-      <div class="catalog-toolbar-card" id="catalogToolbar" style="display: none;">
+      <div class="catalog-toolbar-card">
         <div class="cat-filter-pills-bar">
           <button class="cat-filter-btn active" data-cat="all" onclick="filterCat('all')">Tous les Articles</button>
+          <button class="cat-filter-btn" data-cat="lighting" onclick="filterCat('lighting')">Éclairage LED</button>
+          <button class="cat-filter-btn" data-cat="interior" onclick="filterCat('interior')">Confort Intérieur</button>
+          <button class="cat-filter-btn" data-cat="styling" onclick="filterCat('styling')">Tuning & Styling</button>
+          <button class="cat-filter-btn" data-cat="tools" onclick="filterCat('tools')">Outillage & Batteries</button>
+          <button class="cat-filter-btn" data-cat="bulk" onclick="filterCat('bulk')">Présentoirs B2B</button>
+        </div>
+
+        <div class="pricing-mode-tabs">
+          <button class="pricing-tab-btn active" id="btnWholesale" onclick="setPriceMode('wholesale')">
+            Tarifs Grossiste B2B
+          </button>
+          <button class="pricing-tab-btn" id="btnRetail" onclick="setPriceMode('retail')">
+            Tarifs Publics
+          </button>
         </div>
       </div>
 
