@@ -517,7 +517,7 @@ async function submitOrderToSupabase() {
     cart = [];
     saveCart();
     updateCartBadge();
-    renderCart();
+    renderCartDrawer();
     closeCartDrawer();
     
     // Reset form
