@@ -57,7 +57,7 @@ function handleLogin(e) {
   const password = document.getElementById('passwordInput').value.trim();
   const alertEl = document.getElementById('loginAlert');
 
-  if (username === 'admin' && password === 'abazar2026') {
+  if (username === 'ILHAK' && password === 'ILHAK@1998') {
     sessionStorage.setItem(AUTH_KEY, 'true');
     alertEl.style.display = 'none';
     checkAuth();
