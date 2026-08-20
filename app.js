@@ -493,11 +493,12 @@ async function submitOrderToSupabase() {
   });
 
   try {
-    if (!window.supabaseClient) {
+    const sb = typeof getSupabase === 'function' ? getSupabase() : null;
+    if (!sb) {
       throw new Error("Erreur de connexion à la base de données. Supabase est indisponible.");
     }
 
-    const { error } = await window.supabaseClient
+    const { error } = await sb
       .from('orders')
       .insert([
         {
