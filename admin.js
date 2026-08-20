@@ -515,9 +515,10 @@ function importCatalogJSON(event) {
 // ==========================================================================
 
 async function fetchOrders() {
-  if (!window.supabaseClient) return;
+  const sb = typeof getSupabase === 'function' ? getSupabase() : null;
+  if (!sb) return;
   try {
-    const { data, error } = await window.supabaseClient
+    const { data, error } = await sb
       .from('orders')
       .select('*')
       .order('created_at', { ascending: false });
@@ -609,11 +610,12 @@ function closeOrderModal() {
 }
 
 async function markOrderShipped(id) {
-  if (!window.supabaseClient) return;
+  const sb = typeof getSupabase === 'function' ? getSupabase() : null;
+  if (!sb) return;
   if (!confirm("Marquer cette commande comme expédiée / traitée ?")) return;
   
   try {
-    const { error } = await window.supabaseClient
+    const { error } = await sb
       .from('orders')
       .update({ status: 'shipped' })
       .eq('id', id);
