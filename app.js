@@ -436,18 +436,7 @@ function renderCartDrawer() {
     `;
   }).join('');
 
-  const customerBox = `
-    <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xs); padding: 1rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.65rem;">
-      <span style="font-size: 0.78rem; font-weight: 800; color: #ffffff; text-transform: uppercase;">
-        Coordonnées de Livraison / Devis :
-      </span>
-      <input type="text" id="cartClientName" placeholder="Nom ou Nom du Garage / Magasin" style="width: 100%; padding: 0.55rem 0.75rem; border: 1px solid var(--border-subtle); background: var(--bg-darkest); color: #ffffff; border-radius: 4px; font-size: 0.85rem;">
-      <input type="tel" id="cartClientPhone" placeholder="Numéro de Téléphone (ex: 06 66 34 98 13)" style="width: 100%; padding: 0.55rem 0.75rem; border: 1px solid var(--border-subtle); background: var(--bg-darkest); color: #ffffff; border-radius: 4px; font-size: 0.85rem;">
-      <input type="text" id="cartClientCity" placeholder="Ville de Livraison (ex: Agadir / Casablanca / Marrakech)" style="width: 100%; padding: 0.55rem 0.75rem; border: 1px solid var(--border-subtle); background: var(--bg-darkest); color: #ffffff; border-radius: 4px; font-size: 0.85rem;">
-    </div>
-  `;
-
-  body.innerHTML = itemsHtml + customerBox;
+  body.innerHTML = itemsHtml;
   if (totalEl) totalEl.textContent = `${cartTotal.toFixed(0)} DH`;
 }
 
