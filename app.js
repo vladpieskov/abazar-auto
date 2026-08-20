@@ -516,7 +516,7 @@ async function submitOrderToSupabase() {
     showToast('Commande envoyée avec succès !');
     cart = [];
     saveCart();
-    updateCartCount();
+    updateCartBadge();
     renderCart();
     closeCartDrawer();
     
