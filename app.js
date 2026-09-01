@@ -91,7 +91,8 @@ async function syncFromSupabase() {
 
   try {
     const { data, error } = await sb.from('products').select('*');
-    if (!error && Array.isArray(data)) {
+    if (error) throw error;
+    if (Array.isArray(data)) {
       if (data.length > 0) {
         PRODUCTS = data.map(row => ({
           id: row.id,
@@ -112,6 +113,7 @@ async function syncFromSupabase() {
     }
   } catch (err) {
     console.warn('Supabase sync note:', err);
+    alert('Erreur Supabase: ' + (err.message || JSON.stringify(err)));
   } finally {
     isFetchingProducts = false;
     renderProducts();
