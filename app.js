@@ -90,7 +90,7 @@ async function syncFromSupabase() {
   renderProducts();
 
   try {
-    // Fetch product data WITHOUT the heavy base64 image column to avoid timeout
+    // Step 1: Fetch product data WITHOUT heavy base64 images (fast)
     const { data, error } = await sb.from('products').select('id,sku,name,category,price_retail,price_wholesale,min_qty,rating,variants');
     if (error) throw error;
     if (Array.isArray(data) && data.length > 0) {
@@ -107,7 +107,35 @@ async function syncFromSupabase() {
         image: 'assets/hero_car.jpg'
       }));
       localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS));
-    } else if (!data || data.length === 0) {
+      isFetchingProducts = false;
+      renderProducts();
+
+      // Step 2: Load images in small batches of 5 to avoid timeout
+      const BATCH_SIZE = 5;
+      for (let i = 0; i < PRODUCTS.length; i += BATCH_SIZE) {
+        const batchIds = PRODUCTS.slice(i, i + BATCH_SIZE).map(p => p.id);
+        try {
+          const { data: imgData } = await sb
+            .from('products')
+            .select('id,image')
+            .in('id', batchIds);
+          if (imgData) {
+            imgData.forEach(row => {
+              const p = PRODUCTS.find(prod => prod.id === row.id);
+              if (p && row.image) {
+                p.image = row.image;
+                const imgEl = document.querySelector(`img[alt="${p.name}"]`);
+                if (imgEl) imgEl.src = row.image;
+              }
+            });
+          }
+        } catch (batchErr) {
+          console.warn('Image batch error:', batchErr);
+        }
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS));
+      return;
+    } else {
       console.log('Supabase returned 0 products. Keeping local cache.');
     }
   } catch (err) {
