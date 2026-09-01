@@ -103,7 +103,7 @@ async function loadProducts() {
   const sb = typeof getSupabase === 'function' ? getSupabase() : null;
   if (sb) {
     try {
-      const { data, error } = await sb.from('products').select('*');
+      const { data, error } = await sb.from('products').select('id,sku,name,category,price_retail,price_wholesale,min_qty,rating,variants');
       if (!error && Array.isArray(data)) {
         productsList = data.map(row => ({
           id: row.id,
@@ -114,7 +114,7 @@ async function loadProducts() {
           priceWholesale: Number(row.price_wholesale || row.priceWholesale || 0),
           minQty: Number(row.min_qty || row.minQty || 10),
           rating: Number(row.rating || 5),
-          image: row.image || 'assets/products/led-drl-daytime-running.jpg'
+          image: 'assets/hero_car.jpg'
         }));
         localStorage.setItem(STORAGE_KEY, JSON.stringify(productsList));
         renderProductsTable();

@@ -90,30 +90,28 @@ async function syncFromSupabase() {
   renderProducts();
 
   try {
-    const { data, error } = await sb.from('products').select('*');
+    // Fetch product data WITHOUT the heavy base64 image column to avoid timeout
+    const { data, error } = await sb.from('products').select('id,sku,name,category,price_retail,price_wholesale,min_qty,rating,variants');
     if (error) throw error;
-    if (Array.isArray(data)) {
-      if (data.length > 0) {
-        PRODUCTS = data.map(row => ({
-          id: row.id,
-          sku: row.sku,
-          name: row.name,
-          category: row.category,
-          priceRetail: Number(row.price_retail || row.priceRetail || 0),
-          priceWholesale: Number(row.price_wholesale || row.priceWholesale || 0),
-          minQty: Number(row.min_qty || row.minQty || 10),
-          rating: Number(row.rating || 5),
-          variants: row.variants || [],
-          image: row.image || 'assets/hero_car.jpg'
-        }));
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS));
-      } else {
-        console.log('Supabase is empty. Keeping local products.');
-      }
+    if (Array.isArray(data) && data.length > 0) {
+      PRODUCTS = data.map(row => ({
+        id: row.id,
+        sku: row.sku,
+        name: row.name,
+        category: row.category,
+        priceRetail: Number(row.price_retail || row.priceRetail || 0),
+        priceWholesale: Number(row.price_wholesale || row.priceWholesale || 0),
+        minQty: Number(row.min_qty || row.minQty || 10),
+        rating: Number(row.rating || 5),
+        variants: row.variants || [],
+        image: 'assets/hero_car.jpg'
+      }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS));
+    } else if (!data || data.length === 0) {
+      console.log('Supabase returned 0 products. Keeping local cache.');
     }
   } catch (err) {
     console.warn('Supabase sync note:', err);
-    alert('Erreur Supabase: ' + (err.message || JSON.stringify(err)));
   } finally {
     isFetchingProducts = false;
     renderProducts();
