@@ -90,7 +90,7 @@ async function syncFromSupabase() {
   renderProducts();
 
   try {
-    const { data, error } = await sb.from('products').select('*').order('created_at', { ascending: false });
+    const { data, error } = await sb.from('products').select('*');
     if (!error && Array.isArray(data)) {
       if (data.length > 0) {
         PRODUCTS = data.map(row => ({

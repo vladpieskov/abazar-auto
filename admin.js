@@ -103,8 +103,8 @@ async function loadProducts() {
   const sb = typeof getSupabase === 'function' ? getSupabase() : null;
   if (sb) {
     try {
-      const { data, error } = await sb.from('products').select('*').order('created_at', { ascending: false });
-      if (!error && Array.isArray(data) && data.length > 0) {
+      const { data, error } = await sb.from('products').select('*');
+      if (!error && Array.isArray(data)) {
         productsList = data.map(row => ({
           id: row.id,
           sku: row.sku,
