@@ -600,6 +600,7 @@ function viewOrderDetails(id) {
 
   btnShipped.style.display = order.status === 'shipped' ? 'none' : 'inline-block';
   btnShipped.onclick = () => markOrderShipped(order.id);
+  currentViewedOrderId = order.id;
 
   modal.classList.add('open');
 }
@@ -628,4 +629,157 @@ async function markOrderShipped(id) {
     alert("Erreur lors de la mise à jour du statut.");
     console.error(err);
   }
+}
+
+// ==========================================================================
+// RECEIPT / BON DE LIVRAISON
+// ==========================================================================
+
+let currentViewedOrderId = null;
+
+function printCurrentReceipt() {
+  if (!currentViewedOrderId) return;
+  const order = ordersList.find(o => o.id === currentViewedOrderId);
+  if (!order) return;
+
+  const orderDate = new Date(order.created_at).toLocaleDateString('fr-FR', {
+    day: '2-digit', month: '2-digit', year: 'numeric'
+  });
+
+  const orderNum = String(order.id).slice(-6).toUpperCase();
+
+  let itemsRows = '';
+  let grandTotal = 0;
+
+  if (order.items && Array.isArray(order.items)) {
+    order.items.forEach(item => {
+      const qty = item.qty || 1;
+      const unitPrice = item.price || 0;
+      const lineTotal = qty * unitPrice;
+      grandTotal += lineTotal;
+      itemsRows += `
+        <tr>
+          <td style="text-align: center;">${qty}</td>
+          <td>${item.name || ''} ${item.variant ? '(' + item.variant + ')' : ''}<br><small style="color:#888;">Réf: ${item.sku || ''}</small></td>
+          <td style="text-align: center;">${unitPrice > 0 ? unitPrice.toFixed(2) : '-'}</td>
+          <td style="text-align: center;">${lineTotal > 0 ? lineTotal.toFixed(2) : '-'}</td>
+        </tr>`;
+    });
+  }
+
+  // Pad empty rows to match physical receipt look
+  const minRows = 12;
+  const currentRows = (order.items && order.items.length) || 0;
+  for (let i = currentRows; i < minRows; i++) {
+    itemsRows += `<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>`;
+  }
+
+  const receiptHtml = `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Bon de Livraison - ABAZAR #${orderNum}</title>
+  <style>
+    @media print {
+      body { margin: 0; padding: 10mm; }
+      .no-print { display: none !important; }
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Arial', sans-serif; color: #000; background: #fff; padding: 15mm; max-width: 210mm; }
+
+    .receipt-header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      border-bottom: 3px solid #c00; padding-bottom: 12px; margin-bottom: 15px;
+    }
+    .brand-block h1 { font-size: 28px; font-weight: 900; letter-spacing: 2px; color: #000; }
+    .brand-block p { font-size: 11px; color: #333; line-height: 1.6; }
+    .receipt-title-block { text-align: right; }
+    .receipt-title-block .ar { font-size: 18px; font-weight: 700; }
+    .receipt-title-block .fr { font-size: 16px; font-weight: 700; color: #c00; }
+    .receipt-title-block .num { font-size: 22px; font-weight: 900; color: #c00; margin-top: 4px; }
+
+    .client-row {
+      display: flex; justify-content: space-between; margin: 12px 0 15px;
+      font-size: 13px; border-bottom: 1px dashed #aaa; padding-bottom: 8px;
+    }
+    .client-row span { font-weight: 700; }
+
+    table { width: 100%; border-collapse: collapse; margin-bottom: 0; }
+    th { background: #f5f5f5; font-size: 11px; padding: 8px 6px; text-transform: uppercase; }
+    th.ar { font-size: 13px; font-weight: 700; }
+    td { padding: 7px 6px; font-size: 12px; }
+    table, th, td { border: 1px solid #333; }
+
+    .total-row { background: #c00; color: #fff; }
+    .total-row td { font-size: 16px; font-weight: 900; padding: 10px 6px; }
+
+    .footer-note {
+      margin-top: 20px; text-align: center; font-size: 10px; color: #666;
+      border-top: 1px solid #ccc; padding-top: 10px;
+    }
+    .print-btn {
+      display: block; margin: 20px auto; padding: 12px 40px; font-size: 16px;
+      background: #c00; color: #fff; border: none; border-radius: 6px; cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="receipt-header">
+    <div class="brand-block">
+      <h1>ABAZAR</h1>
+      <p>Accessoires et pièces Autos<br>
+        Route de Biougra Km 1, Ait Melloul<br>
+        Tél.: 05 28 24 55 43 / 06 66 34 98 13</p>
+    </div>
+    <div class="receipt-title-block">
+      <div class="ar">ورقة التسليم</div>
+      <div class="fr">Bon de Livraison</div>
+      <div class="num">${orderNum}</div>
+    </div>
+  </div>
+
+  <div class="client-row">
+    <div><span>السيد / Client :</span> ${order.customer_name}</div>
+    <div><span>Tél :</span> ${order.customer_phone}</div>
+    <div><span>في / Le :</span> ${orderDate}</div>
+  </div>
+
+  <div class="client-row" style="border-bottom: none; padding-bottom: 0; margin-bottom: 5px;">
+    <div><span>Ville / Adresse :</span> ${order.customer_address}</div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 12%;"><span class="ar">العدد</span><br>Quantité</th>
+        <th style="width: 46%;"><span class="ar">نوع البضاعة</span><br>Désignation</th>
+        <th style="width: 18%;"><span class="ar">الثمن</span><br>Prix U.T</th>
+        <th style="width: 24%;"><span class="ar">الواجب</span><br>Prix Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${itemsRows}
+    </tbody>
+    <tfoot>
+      <tr class="total-row">
+        <td colspan="2" style="text-align: left; border-color: #c00;">Total / المجموع :</td>
+        <td colspan="2" style="text-align: center; border-color: #c00;">${grandTotal > 0 ? grandTotal.toFixed(2) : order.total_amount || '—'} DH</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <div class="footer-note">
+    ABAZAR - Accessoires et pièces Autos | Route de Biougra Km 1, Ait Melloul | Tél.: 06 66 34 98 13
+  </div>
+
+  <button class="print-btn no-print" onclick="window.print()">Imprimer ce Bon</button>
+
+</body>
+</html>`;
+
+  const receiptWindow = window.open('', '_blank', 'width=800,height=1000');
+  receiptWindow.document.write(receiptHtml);
+  receiptWindow.document.close();
 }

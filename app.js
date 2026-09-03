@@ -86,14 +86,23 @@ async function syncFromSupabase() {
   const sb = typeof getSupabase === 'function' ? getSupabase() : null;
   if (!sb) return;
 
-  isFetchingProducts = true;
-  renderProducts();
+  // Check if cache already has real images (not placeholder)
+  const cacheHasImages = PRODUCTS.length > 0 && PRODUCTS.some(p => p.image && p.image !== 'assets/hero_car.jpg');
+
+  if (!cacheHasImages) {
+    isFetchingProducts = true;
+    renderProducts();
+  }
 
   try {
-    // Step 1: Fetch product data WITHOUT heavy base64 images (fast)
+    // Step 1: Fetch product metadata (fast, no images)
     const { data, error } = await sb.from('products').select('id,sku,name,category,price_retail,price_wholesale,min_qty,rating,variants');
     if (error) throw error;
     if (Array.isArray(data) && data.length > 0) {
+      // Preserve existing cached images when updating metadata
+      const imageCache = {};
+      PRODUCTS.forEach(p => { if (p.image && p.image !== 'assets/hero_car.jpg') imageCache[p.id] = p.image; });
+
       PRODUCTS = data.map(row => ({
         id: row.id,
         sku: row.sku,
@@ -104,39 +113,41 @@ async function syncFromSupabase() {
         minQty: Number(row.min_qty || row.minQty || 10),
         rating: Number(row.rating || 5),
         variants: row.variants || [],
-        image: 'assets/hero_car.jpg'
+        image: imageCache[row.id] || 'assets/hero_car.jpg'
       }));
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS));
+
       isFetchingProducts = false;
       renderProducts();
 
-      // Step 2: Load images in small batches of 5 to avoid timeout
-      const BATCH_SIZE = 5;
-      for (let i = 0; i < PRODUCTS.length; i += BATCH_SIZE) {
-        const batchIds = PRODUCTS.slice(i, i + BATCH_SIZE).map(p => p.id);
-        try {
-          const { data: imgData } = await sb
-            .from('products')
-            .select('id,image')
-            .in('id', batchIds);
-          if (imgData) {
-            imgData.forEach(row => {
-              const p = PRODUCTS.find(prod => prod.id === row.id);
-              if (p && row.image) {
-                p.image = row.image;
-                const imgEl = document.querySelector(`img[alt="${p.name}"]`);
-                if (imgEl) imgEl.src = row.image;
-              }
-            });
+      // Step 2: Only load images from Supabase if cache doesn't have them
+      if (!cacheHasImages) {
+        const BATCH_SIZE = 5;
+        for (let i = 0; i < PRODUCTS.length; i += BATCH_SIZE) {
+          const batchIds = PRODUCTS.slice(i, i + BATCH_SIZE).map(p => p.id);
+          try {
+            const { data: imgData } = await sb
+              .from('products')
+              .select('id,image')
+              .in('id', batchIds);
+            if (imgData) {
+              imgData.forEach(row => {
+                const p = PRODUCTS.find(prod => prod.id === row.id);
+                if (p && row.image) {
+                  p.image = row.image;
+                  const imgEl = document.querySelector(`img[alt="${p.name}"]`);
+                  if (imgEl) imgEl.src = row.image;
+                }
+              });
+            }
+          } catch (batchErr) {
+            console.warn('Image batch error:', batchErr);
           }
-        } catch (batchErr) {
-          console.warn('Image batch error:', batchErr);
         }
       }
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS));
+
+      // Save everything to cache
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS)); } catch(e) {}
       return;
-    } else {
-      console.log('Supabase returned 0 products. Keeping local cache.');
     }
   } catch (err) {
     console.warn('Supabase sync note:', err);
