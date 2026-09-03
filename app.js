@@ -173,8 +173,9 @@ async function syncFromSupabase() {
     }
   }
       
-  return;
-} catch (err) {
+      return;
+    }
+  } catch (err) {
     console.warn('Supabase sync note:', err);
   } finally {
     isFetchingProducts = false;
