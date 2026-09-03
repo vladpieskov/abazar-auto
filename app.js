@@ -135,7 +135,7 @@ async function syncFromSupabase() {
               const prod = PRODUCTS.find(p => p.id === row.id);
               if (prod && row.image) {
                 prod.image = row.image;
-                const imgEl = document.querySelector(`img[alt="${prod.name}"]`);
+                const imgEl = document.getElementById(`prod-img-${prod.id}`);
                 if (imgEl) imgEl.src = row.image;
               }
             });
@@ -156,7 +156,7 @@ async function syncFromSupabase() {
                   const prod = PRODUCTS.find(p => p.id === row.id);
                   if (prod && row.image) {
                     prod.image = row.image;
-                    const imgEl = document.querySelector(`img[alt="${prod.name}"]`);
+                    const imgEl = document.getElementById(`prod-img-${prod.id}`);
                     if (imgEl) imgEl.src = row.image;
                   }
                 });
@@ -329,7 +329,7 @@ function renderProducts() {
           <span class="badge-flag-stock">
             ${DICT[currentLang].stock_status}
           </span>
-          <img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">
+          <img id="prod-img-${p.id}" src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27100%27 height=%27100%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 fill=%27%231e293b%27/%3E%3Ctext x=%2750%27 y=%2750%27 font-family=%27sans-serif%27 font-size=%2712%27 fill=%27%2364748b%27 text-anchor=%27middle%27 dominant-baseline=%27middle%27%3EABAZAR%3C/text%3E%3C/svg%3E'">
         </div>
 
         <div class="product-card-body">
