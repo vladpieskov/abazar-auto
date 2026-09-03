@@ -87,7 +87,7 @@ async function syncFromSupabase() {
   if (!sb) return;
 
   // Check if cache already has real images (not placeholder)
-  const cacheHasImages = PRODUCTS.length > 0 && PRODUCTS.some(p => p.image && p.image !== 'assets/hero_car.jpg');
+  const cacheHasImages = PRODUCTS.length > 0 && PRODUCTS.some(p => p.image && !p.image.startsWith('data:image/svg'));
 
   if (!cacheHasImages) {
     isFetchingProducts = true;
@@ -101,7 +101,7 @@ async function syncFromSupabase() {
     if (Array.isArray(data) && data.length > 0) {
       // Preserve existing cached images when updating metadata
       const imageCache = {};
-      PRODUCTS.forEach(p => { if (p.image && p.image !== 'assets/hero_car.jpg') imageCache[p.id] = p.image; });
+      PRODUCTS.forEach(p => { if (p.image && !p.image.startsWith('data:image/svg')) imageCache[p.id] = p.image; });
 
       PRODUCTS = data.map(row => ({
         id: row.id,
@@ -113,7 +113,7 @@ async function syncFromSupabase() {
         minQty: Number(row.min_qty || row.minQty || 10),
         rating: Number(row.rating || 5),
         variants: row.variants || [],
-        image: imageCache[row.id] || 'assets/hero_car.jpg'
+        image: imageCache[row.id] || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231e293b'/%3E%3Ctext x='50' y='50' font-family='sans-serif' font-size='12' fill='%2364748b' text-anchor='middle' dominant-baseline='middle'%3EABAZAR%3C/text%3E%3C/svg%3E"
       }));
 
       isFetchingProducts = false;
