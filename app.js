@@ -123,58 +123,58 @@ async function syncFromSupabase() {
       isFetchingProducts = false;
       renderProducts();
 
-      // Step 2: Only load images from Supabase if cache doesn't have them
-      if (!cacheHasImages) {
-        // Fetch first 12 products (visible on screen) IMMEDIATELY
-        const firstBatchIds = PRODUCTS.slice(0, 12).map(p => p.id);
-        
-        try {
-          const { data: firstImgData } = await sb.from('products').select('id,image').in('id', firstBatchIds);
-          if (firstImgData) {
-            firstImgData.forEach(row => {
-              const prod = PRODUCTS.find(p => p.id === row.id);
-              if (prod && row.image) {
-                prod.image = row.image;
-                const imgEl = document.getElementById(`prod-img-${prod.id}`);
-                if (imgEl) imgEl.src = row.image;
-              }
-            });
-            // Save immediately so cache is hot for first 12
-            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS)); } catch(e) {}
-          }
-        } catch(err) { console.warn(err); }
+  // Step 2: Fetch any missing images (placeholders) in the background
+  const missingImgProducts = PRODUCTS.filter(p => 
+    !p.image || p.image.startsWith('data:image/svg') || p.image.includes('hero_car.jpg')
+  );
 
-        // Fetch the rest in parallel to make it as fast as possible
-        // Fetch the rest sequentially in small batches to avoid database crash
-        setTimeout(async () => {
-          const BATCH_SIZE = 5; // Safe size
-          for (let i = 12; i < PRODUCTS.length; i += BATCH_SIZE) {
-            const batchIds = PRODUCTS.slice(i, i + BATCH_SIZE).map(p => p.id);
-            try {
-              const { data: imgData } = await sb.from('products').select('id,image').in('id', batchIds);
-              if (imgData) {
-                imgData.forEach(row => {
-                  const prod = PRODUCTS.find(p => p.id === row.id);
-                  if (prod && row.image) {
-                    prod.image = row.image;
-                    const imgEl = document.getElementById(`prod-img-${prod.id}`);
-                    if (imgEl) imgEl.src = row.image;
-                  }
-                });
-              }
-            } catch (err) {
-              console.warn('Image fetch error:', err);
-            }
-            // Add a tiny pause between requests to let the server breathe
-            await new Promise(resolve => setTimeout(resolve, 100));
+  if (missingImgProducts.length > 0) {
+    // Fetch first 12 missing products IMMEDIATELY
+    const firstBatchIds = missingImgProducts.slice(0, 12).map(p => p.id);
+    
+    try {
+      const { data: firstImgData } = await sb.from('products').select('id,image').in('id', firstBatchIds);
+      if (firstImgData) {
+        firstImgData.forEach(row => {
+          const prod = PRODUCTS.find(p => p.id === row.id);
+          if (prod && row.image) {
+            prod.image = row.image;
+            const imgEl = document.getElementById(`prod-img-${prod.id}`);
+            if (imgEl) imgEl.src = row.image;
           }
-          // Final save when all background images are loaded
-          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS)); } catch(e) {}
-        }, 100); // Start almost immediately
+        });
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS)); } catch(e) {}
       }
-      return;
+    } catch(err) { console.warn(err); }
+
+    // Fetch the rest sequentially in small batches
+    if (missingImgProducts.length > 12) {
+      setTimeout(async () => {
+        const BATCH_SIZE = 5;
+        for (let i = 12; i < missingImgProducts.length; i += BATCH_SIZE) {
+          const batchIds = missingImgProducts.slice(i, i + BATCH_SIZE).map(p => p.id);
+          try {
+            const { data: imgData } = await sb.from('products').select('id,image').in('id', batchIds);
+            if (imgData) {
+              imgData.forEach(row => {
+                const prod = PRODUCTS.find(p => p.id === row.id);
+                if (prod && row.image) {
+                  prod.image = row.image;
+                  const imgEl = document.getElementById(`prod-img-${prod.id}`);
+                  if (imgEl) imgEl.src = row.image;
+                }
+              });
+            }
+          } catch (err) { console.warn('Image fetch error:', err); }
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS)); } catch(e) {}
+      }, 100);
     }
-  } catch (err) {
+  }
+      
+  return;
+} catch (err) {
     console.warn('Supabase sync note:', err);
   } finally {
     isFetchingProducts = false;
