@@ -125,33 +125,48 @@ async function syncFromSupabase() {
 
       // Step 2: Only load images from Supabase if cache doesn't have them
       if (!cacheHasImages) {
-        const BATCH_SIZE = 15; // Increased batch size for fewer requests
-        const promises = [];
+        // Fetch first 12 products (visible on screen) IMMEDIATELY
+        const firstBatchIds = PRODUCTS.slice(0, 12).map(p => p.id);
         
-        for (let i = 0; i < PRODUCTS.length; i += BATCH_SIZE) {
-          const batchIds = PRODUCTS.slice(i, i + BATCH_SIZE).map(p => p.id);
-          const p = sb.from('products').select('id,image').in('id', batchIds).then(({ data: imgData }) => {
-            if (imgData) {
-              imgData.forEach(row => {
-                const prod = PRODUCTS.find(prod => prod.id === row.id);
-                if (prod && row.image) {
-                  prod.image = row.image;
-                  const imgEl = document.querySelector(`img[alt="${prod.name}"]`);
-                  if (imgEl) imgEl.src = row.image;
-                }
-              });
-            }
-          }).catch(err => console.warn('Image batch error:', err));
-          
-          promises.push(p);
-        }
-        
-        // Wait for all batches to finish in parallel
-        await Promise.all(promises);
-      }
+        try {
+          const { data: firstImgData } = await sb.from('products').select('id,image').in('id', firstBatchIds);
+          if (firstImgData) {
+            firstImgData.forEach(row => {
+              const prod = PRODUCTS.find(p => p.id === row.id);
+              if (prod && row.image) {
+                prod.image = row.image;
+                const imgEl = document.querySelector(`img[alt="${prod.name}"]`);
+                if (imgEl) imgEl.src = row.image;
+              }
+            });
+            // Save immediately so cache is hot for first 12
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS)); } catch(e) {}
+          }
+        } catch(err) { console.warn(err); }
 
-      // Save everything to cache
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS)); } catch(e) {}
+        // Fetch the rest quietly in the background without blocking
+        setTimeout(async () => {
+          const BATCH_SIZE = 10;
+          for (let i = 12; i < PRODUCTS.length; i += BATCH_SIZE) {
+            const batchIds = PRODUCTS.slice(i, i + BATCH_SIZE).map(p => p.id);
+            try {
+              const { data: imgData } = await sb.from('products').select('id,image').in('id', batchIds);
+              if (imgData) {
+                imgData.forEach(row => {
+                  const prod = PRODUCTS.find(p => p.id === row.id);
+                  if (prod && row.image) {
+                    prod.image = row.image;
+                    const imgEl = document.querySelector(`img[alt="${prod.name}"]`);
+                    if (imgEl) imgEl.src = row.image;
+                  }
+                });
+              }
+            } catch (err) {}
+          }
+          // Final save when all background images are loaded
+          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS)); } catch(e) {}
+        }, 500); // Wait half a second before starting background load
+      }
       return;
     }
   } catch (err) {
