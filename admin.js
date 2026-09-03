@@ -560,6 +560,7 @@ function renderOrdersTable() {
       <td><span style="background: ${statusColor}20; color: ${statusColor}; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">${statusText}</span></td>
       <td style="text-align: right;">
         <button class="btn-edit" onclick="viewOrderDetails('${order.id}')" style="background: var(--surface-light); border: 1px solid var(--border-dark);">Voir Détails</button>
+        <button class="btn-action-delete" onclick="deleteOrder('${order.id}')" style="margin-left: 5px;">Supprimer</button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -627,6 +628,21 @@ async function markOrderShipped(id) {
     fetchOrders(); // Refresh table
   } catch (err) {
     alert("Erreur lors de la mise à jour du statut.");
+    console.error(err);
+  }
+}
+
+async function deleteOrder(id) {
+  if (!confirm("Êtes-vous sûr de vouloir supprimer cette commande ?")) return;
+  const sb = typeof getSupabase === 'function' ? getSupabase() : null;
+  if (!sb) return;
+
+  try {
+    const { error } = await sb.from('orders').delete().eq('id', id);
+    if (error) throw error;
+    fetchOrders();
+  } catch (err) {
+    alert("Erreur lors de la suppression de la commande.");
     console.error(err);
   }
 }
