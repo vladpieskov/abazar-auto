@@ -125,28 +125,29 @@ async function syncFromSupabase() {
 
       // Step 2: Only load images from Supabase if cache doesn't have them
       if (!cacheHasImages) {
-        const BATCH_SIZE = 5;
+        const BATCH_SIZE = 15; // Increased batch size for fewer requests
+        const promises = [];
+        
         for (let i = 0; i < PRODUCTS.length; i += BATCH_SIZE) {
           const batchIds = PRODUCTS.slice(i, i + BATCH_SIZE).map(p => p.id);
-          try {
-            const { data: imgData } = await sb
-              .from('products')
-              .select('id,image')
-              .in('id', batchIds);
+          const p = sb.from('products').select('id,image').in('id', batchIds).then(({ data: imgData }) => {
             if (imgData) {
               imgData.forEach(row => {
-                const p = PRODUCTS.find(prod => prod.id === row.id);
-                if (p && row.image) {
-                  p.image = row.image;
-                  const imgEl = document.querySelector(`img[alt="${p.name}"]`);
+                const prod = PRODUCTS.find(prod => prod.id === row.id);
+                if (prod && row.image) {
+                  prod.image = row.image;
+                  const imgEl = document.querySelector(`img[alt="${prod.name}"]`);
                   if (imgEl) imgEl.src = row.image;
                 }
               });
             }
-          } catch (batchErr) {
-            console.warn('Image batch error:', batchErr);
-          }
+          }).catch(err => console.warn('Image batch error:', err));
+          
+          promises.push(p);
         }
+        
+        // Wait for all batches to finish in parallel
+        await Promise.all(promises);
       }
 
       // Save everything to cache
