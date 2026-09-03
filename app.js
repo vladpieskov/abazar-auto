@@ -145,12 +145,13 @@ async function syncFromSupabase() {
         } catch(err) { console.warn(err); }
 
         // Fetch the rest in parallel to make it as fast as possible
+        // Fetch the rest sequentially in small batches to avoid database crash
         setTimeout(async () => {
-          const BATCH_SIZE = 20;
-          const promises = [];
+          const BATCH_SIZE = 5; // Safe size
           for (let i = 12; i < PRODUCTS.length; i += BATCH_SIZE) {
             const batchIds = PRODUCTS.slice(i, i + BATCH_SIZE).map(p => p.id);
-            const p = sb.from('products').select('id,image').in('id', batchIds).then(({ data: imgData }) => {
+            try {
+              const { data: imgData } = await sb.from('products').select('id,image').in('id', batchIds);
               if (imgData) {
                 imgData.forEach(row => {
                   const prod = PRODUCTS.find(p => p.id === row.id);
@@ -161,11 +162,12 @@ async function syncFromSupabase() {
                   }
                 });
               }
-            }).catch(err => {});
-            promises.push(p);
+            } catch (err) {
+              console.warn('Image fetch error:', err);
+            }
+            // Add a tiny pause between requests to let the server breathe
+            await new Promise(resolve => setTimeout(resolve, 100));
           }
-          await Promise.all(promises);
-          
           // Final save when all background images are loaded
           try { localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS)); } catch(e) {}
         }, 100); // Start almost immediately
