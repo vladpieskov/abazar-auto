@@ -87,7 +87,7 @@ async function syncFromSupabase() {
   if (!sb) return;
 
   // Check if cache already has real images (not placeholder)
-  const cacheHasImages = PRODUCTS.length > 0 && PRODUCTS.some(p => p.image && !p.image.startsWith('data:image/svg'));
+  const cacheHasImages = PRODUCTS.length > 0 && PRODUCTS.some(p => p.image && !p.image.startsWith('data:image/svg') && !p.image.includes('hero_car.jpg'));
 
   if (!cacheHasImages) {
     isFetchingProducts = true;
@@ -101,7 +101,11 @@ async function syncFromSupabase() {
     if (Array.isArray(data) && data.length > 0) {
       // Preserve existing cached images when updating metadata
       const imageCache = {};
-      PRODUCTS.forEach(p => { if (p.image && !p.image.startsWith('data:image/svg')) imageCache[p.id] = p.image; });
+      PRODUCTS.forEach(p => { 
+        if (p.image && !p.image.startsWith('data:image/svg') && !p.image.includes('hero_car.jpg')) {
+          imageCache[p.id] = p.image; 
+        }
+      });
 
       PRODUCTS = data.map(row => ({
         id: row.id,
