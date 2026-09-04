@@ -16,6 +16,15 @@ let cart = [];
 let isFetchingProducts = false;
 let globalImageObserver = null; // Global observer for lazy loading
 
+const ABAZAR_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231e293b'/%3E%3Ctext x='50' y='50' font-family='sans-serif' font-size='12' fill='%2364748b' text-anchor='middle' dominant-baseline='middle'%3EABAZAR%3C/text%3E%3C/svg%3E";
+
+function getSafeImage(imgUrl) {
+  if (!imgUrl || imgUrl === 'null' || imgUrl.includes('hero_car.jpg')) {
+    return ABAZAR_SVG;
+  }
+  return imgUrl;
+}
+
 // Initialize the IntersectionObserver
 function initLazyLoader() {
   if (globalImageObserver) return;
@@ -31,8 +40,9 @@ function initLazyLoader() {
             sb.from('products').select('image').eq('id', prodId).single().then(({ data, error }) => {
               if (data && data.image) {
                 const prod = PRODUCTS.find(p => p.id === prodId);
-                if (prod) prod.image = data.image;
-                imgEl.src = data.image;
+                const safeImg = getSafeImage(data.image);
+                if (prod) prod.image = safeImg;
+                imgEl.src = safeImg;
                 if (Math.random() < 0.1) {
                   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS)); } catch(e) {}
                 }
@@ -322,9 +332,9 @@ function renderProducts() {
           <span class="badge-flag-stock">
             ${DICT[currentLang].stock_status}
           </span>
-          <img id="prod-img-${p.id}" src="${p.image}" alt="${p.name}" loading="lazy" 
-               ${(!p.image || p.image.startsWith('data:image/svg') || p.image.includes('hero_car')) ? `data-lazy="true" data-prodid="${p.id}"` : ''} 
-               onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27100%27 height=%27100%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 fill=%27%231e293b%27/%3E%3Ctext x=%2750%27 y=%2750%27 font-family=%27sans-serif%27 font-size=%2712%27 fill=%27%2364748b%27 text-anchor=%27middle%27 dominant-baseline=%27middle%27%3EABAZAR%3C/text%3E%3C/svg%3E'">
+          <img id="prod-img-${p.id}" src="${getSafeImage(p.image)}" alt="${p.name}" loading="lazy" 
+               ${(getSafeImage(p.image) === ABAZAR_SVG) ? `data-lazy="true" data-prodid="${p.id}"` : ''} 
+               onerror="this.src='${ABAZAR_SVG}'">
         </div>
 
         <div class="product-card-body">
