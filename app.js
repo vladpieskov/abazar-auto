@@ -14,6 +14,36 @@ let currentCategory = 'all';
 let searchQuery = '';
 let cart = [];
 let isFetchingProducts = false;
+let globalImageObserver = null; // Global observer for lazy loading
+
+// Initialize the IntersectionObserver
+function initLazyLoader() {
+  if (globalImageObserver) return;
+  globalImageObserver = new IntersectionObserver((entries, obs) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const imgEl = entry.target;
+        const prodId = imgEl.dataset.prodid;
+        if (prodId) {
+          obs.unobserve(imgEl); // Stop observing once it's on screen
+          const sb = typeof getSupabase === 'function' ? getSupabase() : null;
+          if (sb) {
+            sb.from('products').select('image').eq('id', prodId).single().then(({ data, error }) => {
+              if (data && data.image) {
+                const prod = PRODUCTS.find(p => p.id === prodId);
+                if (prod) prod.image = data.image;
+                imgEl.src = data.image;
+                if (Math.random() < 0.1) {
+                  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS)); } catch(e) {}
+                }
+              }
+            }).catch(e => console.warn('Lazy load error:', e));
+          }
+        }
+      }
+    });
+  }, { rootMargin: '200px 0px', threshold: 0.01 });
+}
 
 const DICT = {
   fr: {
@@ -129,61 +159,12 @@ async function syncFromSupabase() {
   );
 
   if (missingImgProducts.length > 0) {
-    // Fetch first 12 missing products IMMEDIATELY
-    const firstBatchIds = missingImgProducts.slice(0, 12).map(p => p.id);
-    
-    try {
-      const { data: firstImgData } = await sb.from('products').select('id,image').in('id', firstBatchIds);
-      if (firstImgData) {
-        firstImgData.forEach(row => {
-          const prod = PRODUCTS.find(p => p.id === row.id);
-          if (prod && row.image) {
-            prod.image = row.image;
-            const imgEl = document.getElementById(`prod-img-${prod.id}`);
-            if (imgEl) imgEl.src = row.image;
-          }
-        });
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS)); } catch(e) {}
-      }
-    } catch(err) { console.warn(err); }
-
-    // True Lazy Loading: Only fetch images when they scroll into view
-    const observer = new IntersectionObserver((entries, obs) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const imgEl = entry.target;
-          const prodId = imgEl.dataset.prodid;
-          if (prodId) {
-            // Unobserve immediately so we don't trigger twice
-            obs.unobserve(imgEl);
-            // Fetch this specific image
-            sb.from('products').select('image').eq('id', prodId).single().then(({ data, error }) => {
-              if (data && data.image) {
-                const prod = PRODUCTS.find(p => p.id === prodId);
-                if (prod) prod.image = data.image;
-                imgEl.src = data.image;
-                // Try saving cache periodically (throttled)
-                if (Math.random() < 0.1) {
-                  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS)); } catch(e) {}
-                }
-              }
-            }).catch(e => console.warn('Lazy load error:', e));
-          }
-        }
-      });
-    }, { rootMargin: '200px 0px', threshold: 0.01 });
-
-    // Wait a brief moment for the DOM to be ready, then observe all placeholder images
-    setTimeout(() => {
-      document.querySelectorAll('img[data-lazy="true"]').forEach(img => {
-        observer.observe(img);
-      });
-    }, 200);
+    // Images will now be fetched automatically via the lazy loader 
+    // initialized in renderProducts() when they scroll into view!
   }
       
-      return;
-    }
-  } catch (err) {
+  return;
+} catch (err) {
     console.warn('Supabase sync note:', err);
   } finally {
     isFetchingProducts = false;
@@ -365,6 +346,12 @@ function renderProducts() {
       </article>
     `;
   }).join('');
+
+  // Attach observer to new DOM elements
+  initLazyLoader();
+  document.querySelectorAll('img[data-lazy="true"]').forEach(img => {
+    globalImageObserver.observe(img);
+  });
 }
 
 function filterCat(cat) {
