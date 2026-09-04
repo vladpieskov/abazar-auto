@@ -147,30 +147,38 @@ async function syncFromSupabase() {
       }
     } catch(err) { console.warn(err); }
 
-    // Fetch the rest sequentially in small batches
-    if (missingImgProducts.length > 12) {
-      setTimeout(async () => {
-        const BATCH_SIZE = 5;
-        for (let i = 12; i < missingImgProducts.length; i += BATCH_SIZE) {
-          const batchIds = missingImgProducts.slice(i, i + BATCH_SIZE).map(p => p.id);
-          try {
-            const { data: imgData } = await sb.from('products').select('id,image').in('id', batchIds);
-            if (imgData) {
-              imgData.forEach(row => {
-                const prod = PRODUCTS.find(p => p.id === row.id);
-                if (prod && row.image) {
-                  prod.image = row.image;
-                  const imgEl = document.getElementById(`prod-img-${prod.id}`);
-                  if (imgEl) imgEl.src = row.image;
+    // True Lazy Loading: Only fetch images when they scroll into view
+    const observer = new IntersectionObserver((entries, obs) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const imgEl = entry.target;
+          const prodId = imgEl.dataset.prodid;
+          if (prodId) {
+            // Unobserve immediately so we don't trigger twice
+            obs.unobserve(imgEl);
+            // Fetch this specific image
+            sb.from('products').select('image').eq('id', prodId).single().then(({ data, error }) => {
+              if (data && data.image) {
+                const prod = PRODUCTS.find(p => p.id === prodId);
+                if (prod) prod.image = data.image;
+                imgEl.src = data.image;
+                // Try saving cache periodically (throttled)
+                if (Math.random() < 0.1) {
+                  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS)); } catch(e) {}
                 }
-              });
-            }
-          } catch (err) { console.warn('Image fetch error:', err); }
-          await new Promise(resolve => setTimeout(resolve, 100));
+              }
+            }).catch(e => console.warn('Lazy load error:', e));
+          }
         }
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS)); } catch(e) {}
-      }, 100);
-    }
+      });
+    }, { rootMargin: '200px 0px', threshold: 0.01 });
+
+    // Wait a brief moment for the DOM to be ready, then observe all placeholder images
+    setTimeout(() => {
+      document.querySelectorAll('img[data-lazy="true"]').forEach(img => {
+        observer.observe(img);
+      });
+    }, 200);
   }
       
       return;
@@ -332,7 +340,9 @@ function renderProducts() {
           <span class="badge-flag-stock">
             ${DICT[currentLang].stock_status}
           </span>
-          <img id="prod-img-${p.id}" src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27100%27 height=%27100%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 fill=%27%231e293b%27/%3E%3Ctext x=%2750%27 y=%2750%27 font-family=%27sans-serif%27 font-size=%2712%27 fill=%27%2364748b%27 text-anchor=%27middle%27 dominant-baseline=%27middle%27%3EABAZAR%3C/text%3E%3C/svg%3E'">
+          <img id="prod-img-${p.id}" src="${p.image}" alt="${p.name}" loading="lazy" 
+               ${(!p.image || p.image.startsWith('data:image/svg') || p.image.includes('hero_car')) ? `data-lazy="true" data-prodid="${p.id}"` : ''} 
+               onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27100%27 height=%27100%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 fill=%27%231e293b%27/%3E%3Ctext x=%2750%27 y=%2750%27 font-family=%27sans-serif%27 font-size=%2712%27 fill=%27%2364748b%27 text-anchor=%27middle%27 dominant-baseline=%27middle%27%3EABAZAR%3C/text%3E%3C/svg%3E'">
         </div>
 
         <div class="product-card-body">
