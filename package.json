@@ -13,5 +13,8 @@
     "abazar"
   ],
   "author": "ABAZAR",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@vercel/speed-insights": "^2.0.0"
+  }
 }
