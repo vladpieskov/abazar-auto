@@ -560,7 +560,7 @@ function renderOrdersTable() {
       <td><span style="background: ${statusColor}20; color: ${statusColor}; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">${statusText}</span></td>
       <td style="text-align: right;">
         <button class="btn-edit" onclick="viewOrderDetails('${order.id}')" style="background: var(--surface-light); border: 1px solid var(--border-dark);">Voir Détails</button>
-        <button class="btn-action-delete" onclick="deleteOrder('${order.id}')" style="margin-left: 5px;">Supprimer</button>
+        <button onclick="deleteOrder('${order.id}')" style="margin-left: 5px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 6px 12px; border-radius: 4px; font-weight: 500; cursor: pointer; transition: 0.2s;">Supprimer</button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -633,16 +633,21 @@ async function markOrderShipped(id) {
 }
 
 async function deleteOrder(id) {
-  if (!confirm("Êtes-vous sûr de vouloir supprimer cette commande ?")) return;
+  if (!confirm("Êtes-vous sûr de vouloir supprimer cette commande définitivement ?")) return;
   const sb = typeof getSupabase === 'function' ? getSupabase() : null;
-  if (!sb) return;
+  if (!sb) {
+    alert("Erreur de connexion à Supabase.");
+    return;
+  }
 
   try {
     const { error } = await sb.from('orders').delete().eq('id', id);
     if (error) throw error;
+    
+    // Refresh table after deletion
     fetchOrders();
   } catch (err) {
-    alert("Erreur lors de la suppression de la commande.");
+    alert("Erreur Supabase: " + (err.message || JSON.stringify(err)) + "\n\nAvez-vous bien ajouté la règle SQL pour la suppression (DELETE) ?");
     console.error(err);
   }
 }
