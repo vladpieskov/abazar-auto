@@ -163,8 +163,9 @@ async function syncFromSupabase() {
     // initialized in renderProducts() when they scroll into view!
   }
       
-  return;
-} catch (err) {
+      return;
+    }
+  } catch (err) {
     console.warn('Supabase sync note:', err);
   } finally {
     isFetchingProducts = false;
